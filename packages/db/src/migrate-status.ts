@@ -21,7 +21,12 @@ const journalPath = join(here, '..', 'drizzle', 'meta', '_journal.json')
  */
 async function main() {
   const url = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL
-  if (!url) throw new Error('Set DIRECT_DATABASE_URL (or DATABASE_URL) to the target database')
+  if (!url) {
+    throw new Error(
+      'No database URL. Locally, set DIRECT_DATABASE_URL or DATABASE_URL. In CI, ' +
+        'add DIRECT_DATABASE_URL (the session-pooler string) as a repository secret.',
+    )
+  }
 
   const journal = JSON.parse(readFileSync(journalPath, 'utf8')) as { entries: JournalEntry[] }
   const sql = postgres(url, { max: 1, prepare: false, idle_timeout: 5 })
