@@ -14,8 +14,10 @@ import * as schema from './schema'
  * A direct or session-mode connection keeps one backend per client, so both
  * prepared statements and a real pool are fine.
  */
-function poolOptions(url: string): postgres.Options<Record<string, never>> {
-  const transactionPooler = url.includes(':6543') || url.includes('pgbouncer=true')
+function poolOptions(url: string | undefined): postgres.Options<Record<string, never>> {
+  // SKIP_ENV_VALIDATION makes the typed env lie: during a build with no database
+  // configured this is undefined, and the module still has to evaluate.
+  const transactionPooler = Boolean(url?.includes(':6543') || url?.includes('pgbouncer=true'))
 
   return transactionPooler ? { max: 1, prepare: false, idle_timeout: 20 } : { max: 10 }
 }
