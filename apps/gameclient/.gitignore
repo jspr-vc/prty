@@ -1,1 +1,5 @@
 .vercel
+
+# A symlink to the repo-root .env for local dev. It dangles in any upload that
+# does not include the repo root, which Vercel rejects outright.
+.env
