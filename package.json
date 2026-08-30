@@ -18,7 +18,7 @@
     "infra:down": "docker compose down && bunx supabase stop",
     "infra:status": "bunx supabase status",
     "env:link": "test -f .env && ln -sfn ../../.env apps/gamemaster/.env && ln -sfn ../../.env apps/gameclient/.env || true",
-    "prepare": "lefthook install && bun run env:link"
+    "prepare": "lefthook install || true; bun run env:link || true"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
