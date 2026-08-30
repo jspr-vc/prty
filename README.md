@@ -68,6 +68,62 @@ redis 6380, redis-http 8089) so this stack can run beside other local projects.
 **To play on real phones**, set `NEXT_PUBLIC_GAMEMASTER_URL` to your machine's LAN
 address (e.g. `http://192.168.1.6:3000`) so the QR code resolves off-device.
 
+## Deployment
+
+Two Vercel projects, both building from this repo with a Root Directory set:
+
+| Project                  | Root directory     | URL                                    |
+| ------------------------ | ------------------ | -------------------------------------- |
+| `gameshows-gameclient`   | `apps/gameclient`  | https://gameshows-gameclient.vercel.app |
+| `gameshows-gamemaster`   | `apps/gamemaster`  | https://gameshows-gamemaster.vercel.app |
+
+Both are connected to `main`, so a push deploys both.
+
+### Environment variables
+
+Nothing in `.env.example` works in production — those values all point at the
+local Supabase and Redis containers. You need a hosted Supabase project and an
+Upstash Redis database, then set the following in each Vercel project.
+
+**Both projects** need every server variable, because each one runs its own tRPC
+handler and reads the session:
+
+| Variable                        | Where it comes from                                          |
+| ------------------------------- | ------------------------------------------------------------ |
+| `DATABASE_URL`                  | Supabase → Project Settings → Database → Connection string    |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase → Project Settings → API → Project URL               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon/publishable key      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase → Project Settings → API → service_role key (secret) |
+| `UPSTASH_REDIS_REST_URL`        | Upstash → your database → REST API                            |
+| `UPSTASH_REDIS_REST_TOKEN`      | Upstash → your database → REST API                            |
+| `BETTER_AUTH_SECRET`            | Generate one: `openssl rand -base64 32`                       |
+| `BETTER_AUTH_URL`               | `https://gameshows-gamemaster.vercel.app`                     |
+
+Then the public URLs, which differ per project:
+
+| Variable                      | gameclient | gamemaster | Value                                     |
+| ----------------------------- | :--------: | :--------: | ----------------------------------------- |
+| `NEXT_PUBLIC_GAMEMASTER_URL`  | ✔          | ✔          | `https://gameshows-gamemaster.vercel.app` |
+| `NEXT_PUBLIC_GAMECLIENT_URL`  |            | ✔          | `https://gameshows-gameclient.vercel.app` |
+
+`BETTER_AUTH_URL` points at the gamemaster in both projects: the auth routes only
+exist there. `NEXT_PUBLIC_GAMEMASTER_URL` is what the TV encodes into its QR code,
+so it must be the address a phone can reach.
+
+### After the variables are set
+
+Point `DATABASE_URL` at the hosted database and run the migration and seed once
+from your machine:
+
+```bash
+DATABASE_URL='<hosted url>' bun run db:migrate
+DATABASE_URL='<hosted url>' bun run db:seed
+```
+
+Redeploy both projects so the new variables are baked into the client bundles —
+`NEXT_PUBLIC_*` values are inlined at build time, so changing them requires a
+rebuild, not just a restart.
+
 ## Commands
 
 | Command               | What                                     |
