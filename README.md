@@ -105,7 +105,7 @@ handler and reads the session:
 
 | Variable                        | Where it comes from                                          |
 | ------------------------------- | ------------------------------------------------------------ |
-| `DATABASE_URL`                  | Supabase → Project Settings → Database → Connection string    |
+| `DATABASE_URL`                  | Supabase → Connect → **Transaction pooler** (port 6543)        |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase → Project Settings → API → Project URL               |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon/publishable key      |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Supabase → Project Settings → API → service_role key (secret) |
@@ -113,6 +113,33 @@ handler and reads the session:
 | `UPSTASH_REDIS_REST_TOKEN`      | Upstash → your database → REST API                            |
 | `BETTER_AUTH_SECRET`            | Generate one: `openssl rand -base64 32`                       |
 | `BETTER_AUTH_URL`               | `https://prty-gm.jspr.vc`                                     |
+
+#### Which connection string
+
+Supabase offers three, and they are not interchangeable:
+
+| String                | Port | Use it for                                              |
+| --------------------- | ---- | ------------------------------------------------------- |
+| **Transaction pooler**| 6543 | `DATABASE_URL` on Vercel — this is the one the app wants |
+| **Session pooler**    | 5432 | `DIRECT_DATABASE_URL`, for migrations and seeds          |
+| **Direct**            | 5432 | Same as session pooler, but IPv6-only on the free tier   |
+
+The app runs on serverless functions that come and go, so it needs the
+transaction pooler: it hands back the connection after every transaction instead
+of holding one per instance. The catch is that a pooled connection is a different
+backend each time, so prepared statements cannot survive between queries.
+`packages/db/src/client.ts` detects port 6543 and turns them off, along with
+capping the client pool at one connection.
+
+Migrations are the opposite: `drizzle-kit` runs DDL and wants a session it can
+hold, which the transaction pooler will not give it. Set `DIRECT_DATABASE_URL`
+to the session pooler string and drizzle-kit uses it automatically. Direct
+connections work too, but Supabase serves them over IPv6 only unless you pay for
+the IPv4 add-on, and Vercel's build machines cannot reach them.
+
+`DIRECT_DATABASE_URL` is optional and only needed where migrations run — your
+machine, or CI. It falls back to `DATABASE_URL`, which is what local development
+uses since there is only one connection string there.
 
 Then the public URLs, which differ per project:
 
@@ -127,12 +154,12 @@ so it must be the address a phone can reach.
 
 ### After the variables are set
 
-Point `DATABASE_URL` at the hosted database and run the migration and seed once
-from your machine:
+Run the migration and seed once from your machine, against the **session pooler**
+string rather than the transaction one:
 
 ```bash
-DATABASE_URL='<hosted url>' bun run db:migrate
-DATABASE_URL='<hosted url>' bun run db:seed
+DIRECT_DATABASE_URL='<session pooler url>' bun run db:migrate
+DIRECT_DATABASE_URL='<session pooler url>' bun run db:seed
 ```
 
 Redeploy both projects so the new variables are baked into the client bundles —
