@@ -72,12 +72,27 @@ address (e.g. `http://192.168.1.6:3000`) so the QR code resolves off-device.
 
 Two Vercel projects, both building from this repo with a Root Directory set:
 
-| Project                  | Root directory     | URL                                    |
-| ------------------------ | ------------------ | -------------------------------------- |
-| `gameshows-gameclient`   | `apps/gameclient`  | https://gameshows-gameclient.vercel.app |
-| `gameshows-gamemaster`   | `apps/gamemaster`  | https://gameshows-gamemaster.vercel.app |
+| Project                | Root directory    | Domain                    |
+| ---------------------- | ----------------- | ------------------------- |
+| `gameshows-gameclient` | `apps/gameclient` | https://prty.jspr.vc      |
+| `gameshows-gamemaster` | `apps/gamemaster` | https://prty-gm.jspr.vc   |
 
-Both are connected to `main`, so a push deploys both.
+Both are connected to `main`, so a push deploys both. The
+`*.vercel.app` URLs keep working alongside the custom domains.
+
+### DNS
+
+`jspr.vc` runs on external nameservers (Namecheap), so both records are added
+there. Each subdomain has its own dedicated Vercel target:
+
+| Type    | Host      | Value                                  |
+| ------- | --------- | -------------------------------------- |
+| `CNAME` | `prty`    | `88129cb626c6bcea.vercel-dns-017.com.` |
+| `CNAME` | `prty-gm` | `bab298c54d4a7a1f.vercel-dns-017.com.` |
+
+`cname.vercel-dns.com.` also works for either, but the dedicated targets are
+what Vercel recommends. Certificates are issued automatically once the records
+resolve.
 
 ### Environment variables
 
@@ -97,14 +112,14 @@ handler and reads the session:
 | `UPSTASH_REDIS_REST_URL`        | Upstash → your database → REST API                            |
 | `UPSTASH_REDIS_REST_TOKEN`      | Upstash → your database → REST API                            |
 | `BETTER_AUTH_SECRET`            | Generate one: `openssl rand -base64 32`                       |
-| `BETTER_AUTH_URL`               | `https://gameshows-gamemaster.vercel.app`                     |
+| `BETTER_AUTH_URL`               | `https://prty-gm.jspr.vc`                                     |
 
 Then the public URLs, which differ per project:
 
 | Variable                      | gameclient | gamemaster | Value                                     |
 | ----------------------------- | :--------: | :--------: | ----------------------------------------- |
-| `NEXT_PUBLIC_GAMEMASTER_URL`  | ✔          | ✔          | `https://gameshows-gamemaster.vercel.app` |
-| `NEXT_PUBLIC_GAMECLIENT_URL`  |            | ✔          | `https://gameshows-gameclient.vercel.app` |
+| `NEXT_PUBLIC_GAMEMASTER_URL`  | ✔          | ✔          | `https://prty-gm.jspr.vc` |
+| `NEXT_PUBLIC_GAMECLIENT_URL`  |            | ✔          | `https://prty.jspr.vc`    |
 
 `BETTER_AUTH_URL` points at the gamemaster in both projects: the auth routes only
 exist there. `NEXT_PUBLIC_GAMEMASTER_URL` is what the TV encodes into its QR code,
