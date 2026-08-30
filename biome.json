@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/.next", "!**/node_modules", "!**/dist", "!**/.turbo", "!**/drizzle"]
+    "includes": [
+      "**",
+      "!**/.next",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/.turbo",
+      "!**/drizzle",
+      "!**/next-env.d.ts"
+    ]
   },
   "formatter": {
     "enabled": true,
