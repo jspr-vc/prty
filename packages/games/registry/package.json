@@ -1,0 +1,22 @@
+{
+  "name": "@workspace/games",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/common": "workspace:*",
+    "@workspace/game-family-feud": "workspace:*",
+    "@workspace/game-jeopardy": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

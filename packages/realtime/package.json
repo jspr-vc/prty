@@ -1,0 +1,33 @@
+{
+  "name": "@workspace/realtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./events": "./src/events.ts",
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./env": "./src/env-realtime.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "catalog:",
+    "@t3-oss/env-nextjs": "catalog:",
+    "@workspace/common": "workspace:*",
+    "server-only": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@workspace/typescript-config": "workspace:*",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  }
+}

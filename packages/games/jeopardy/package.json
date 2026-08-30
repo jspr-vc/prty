@@ -1,0 +1,28 @@
+{
+  "name": "@workspace/game-jeopardy",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./display": "./src/components/display.tsx",
+    "./control": "./src/components/control.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/common": "workspace:*",
+    "@workspace/ui": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@workspace/typescript-config": "workspace:*",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:"
+  }
+}

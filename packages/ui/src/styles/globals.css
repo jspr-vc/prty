@@ -1,0 +1,325 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@source "../../../../apps/**/*.{ts,tsx}";
+@source "../../../../packages/**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Big-screen "stage" palette. Fixed dark regardless of the viewer's theme: the
+ * TV has one look, and it is watched in a dark room.
+ *
+ * Tuned for mini-LED / OLED panels, where a saturated full-screen colour is
+ * blinding and pure #000 next to bright text causes visible blooming. So the
+ * ground is a near-black with a faint cool cast, panels are separated by a low
+ * border rather than by brightness, and the foreground stops short of pure
+ * white.
+ */
+:root {
+  --stage-bg: #0a0b0f;
+  --stage-panel: #15171d;
+  --stage-panel-hi: #1f222b;
+  --stage-line: #ffffff14;
+  --stage-fg: #ebecf0;
+  --stage-muted: #ffffff8f;
+  --stage-accent: #f0c23c;
+  --stage-accent-fg: #0a0b0f;
+  --stage-danger: #f0564a;
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.371 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-stage: var(--stage-bg);
+  --color-stage-panel: var(--stage-panel);
+  --color-stage-panel-hi: var(--stage-panel-hi);
+  --color-stage-line: var(--stage-line);
+  --color-stage-fg: var(--stage-fg);
+  --color-stage-muted: var(--stage-muted);
+  --color-stage-accent: var(--stage-accent);
+  --color-stage-accent-fg: var(--stage-accent-fg);
+  --color-stage-danger: var(--stage-danger);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/*
+ * Big-screen motion. Everything is CSS so the TV never waits on a JS animation
+ * library, and every cue is short enough not to slow the host down.
+ */
+@keyframes gs-clue-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gs-flip-in {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+@keyframes gs-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes gs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gs-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  70% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes gs-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.gs-clue-in {
+  animation: gs-clue-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.gs-flip-in {
+  animation: gs-flip-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+.gs-pop {
+  animation: gs-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.gs-rise {
+  animation: gs-rise 300ms ease-out both;
+}
+.gs-buzzed {
+  animation: gs-pulse-ring 900ms ease-out infinite;
+}
+.gs-shake {
+  animation: gs-shake 420ms ease-in-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-clue-in,
+  .gs-flip-in,
+  .gs-pop,
+  .gs-rise,
+  .gs-buzzed,
+  .gs-shake {
+    animation: none;
+  }
+}
+
+/*
+ * Big-screen type scale, sized in vw rather than rem.
+ *
+ * A TV browser may report a 3840px CSS viewport rather than scaling to 1920, in
+ * which case fixed rem sizes render at half the intended size and the room
+ * cannot read the board. These fill 1080p, 1440p and 4K identically, with
+ * clamps so a laptop preview stays sane at both ends.
+ */
+.stage-display {
+  font-size: clamp(2.5rem, 4.6vw, 9rem);
+  line-height: 1.05;
+}
+.stage-title {
+  font-size: clamp(1.75rem, 3.1vw, 6rem);
+  line-height: 1.1;
+}
+.stage-value {
+  font-size: clamp(1.5rem, 2.6vw, 5rem);
+  line-height: 1.1;
+}
+.stage-score {
+  font-size: clamp(1.25rem, 2.2vw, 4.2rem);
+  line-height: 1.1;
+}
+.stage-item {
+  font-size: clamp(1rem, 1.7vw, 3.2rem);
+  line-height: 1.2;
+}
+.stage-label {
+  font-size: clamp(0.75rem, 1.05vw, 2rem);
+  line-height: 1.3;
+}
+.stage-caption {
+  font-size: clamp(0.65rem, 0.8vw, 1.5rem);
+  line-height: 1.3;
+}
+.stage-code {
+  font-size: clamp(2.5rem, 5vw, 10rem);
+  line-height: 1;
+}
+.stage-strike {
+  width: clamp(2.5rem, 3.6vw, 6.5rem);
+  height: clamp(2.5rem, 3.6vw, 6.5rem);
+  font-size: clamp(1.25rem, 1.9vw, 3.5rem);
+}
+.stage-qr {
+  width: clamp(12rem, 19vw, 34rem);
+}
+.stage-qr > svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}

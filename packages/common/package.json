@@ -1,0 +1,24 @@
+{
+  "name": "@workspace/common",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./consts": "./src/consts.ts",
+    "./utils": "./src/utils.ts",
+    "./schemas": "./src/schemas.ts",
+    "./game": "./src/game.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}
