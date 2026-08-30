@@ -6,6 +6,35 @@ import { admin as adminPlugin, organization } from 'better-auth/plugins'
 import { env } from './env-auth'
 import { ac, roles } from './permissions'
 
+type RedisClient = NonNullable<typeof redis>
+
+/**
+ * Optional: a cache in front of postgres. Without it better-auth reads sessions
+ * from the database every time and keeps verification records in the
+ * `verification` table, which is slower but entirely correct.
+ *
+ * Taking the client as an argument rather than closing over the import is what
+ * lets TypeScript see it as non-null inside these callbacks.
+ */
+function cacheIn(client: RedisClient) {
+  return {
+    get: async (key: string) => (await client.get<string>(key)) ?? null,
+    set: async (key: string, value: string, ttl?: number) => {
+      if (ttl) await client.set(key, value, { ex: ttl })
+      else await client.set(key, value)
+    },
+    delete: async (key: string) => {
+      await client.del(key)
+    },
+    getAndDelete: async (key: string) => (await client.getdel<string>(key)) ?? null,
+    increment: async (key: string, ttl?: number) => {
+      const count = await client.incr(key)
+      if (ttl && count === 1) await client.expire(key, ttl)
+      return count
+    },
+  }
+}
+
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
@@ -18,30 +47,16 @@ export const auth = betterAuth({
       organization: schema.organization,
       member: schema.member,
       invitation: schema.invitation,
+      verification: schema.verification,
     },
   }),
-  secondaryStorage: {
-    get: async (key) => (await redis.get<string>(key)) ?? null,
-    set: async (key, value, ttl) => {
-      if (ttl) await redis.set(key, value, { ex: ttl })
-      else await redis.set(key, value)
-    },
-    delete: async (key) => {
-      await redis.del(key)
-    },
-    getAndDelete: async (key) => (await redis.getdel<string>(key)) ?? null,
-    increment: async (key, ttl) => {
-      const count = await redis.incr(key)
-      if (ttl && count === 1) await redis.expire(key, ttl)
-      return count
-    },
-  },
+  ...(redis ? { secondaryStorage: cacheIn(redis) } : {}),
   emailAndPassword: {
     enabled: true,
   },
   session: {
-    // Redis is a cache in front of postgres, not the only copy: flushing redis
-    // must not sign every host out mid-show.
+    // Postgres is always the source of truth, so flushing redis (or removing it
+    // entirely) must not sign every host out mid-show.
     storeSessionInDatabase: true,
     cookieCache: {
       enabled: true,

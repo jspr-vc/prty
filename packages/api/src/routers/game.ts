@@ -3,21 +3,49 @@ import { asc, eq } from '@workspace/db'
 import { game, gamePack } from '@workspace/db/schema'
 import { createTRPCRouter, publicProcedure } from '../trpc'
 
+/**
+ * The game registry and its question packs are the only reads here worth
+ * caching: they change when you run the seed and effectively never otherwise,
+ * and the host console asks for them on every load. Everything about a live
+ * session is deliberately left uncached — a stale board would be worse than a
+ * slow one.
+ */
+const STATIC_CONTENT = { config: { ex: 300 } } as const
+
 export const gameRouter = createTRPCRouter({
   list: publicProcedure.query(({ ctx }) =>
-    ctx.db.query.game.findMany({ where: eq(game.enabled, true), orderBy: asc(game.name) }),
+    ctx.db
+      .select()
+      .from(game)
+      .where(eq(game.enabled, true))
+      .orderBy(asc(game.name))
+      .$withCache(STATIC_CONTENT),
   ),
 
-  bySlug: publicProcedure
-    .input(gameSlugSchema)
-    .query(({ ctx, input }) => ctx.db.query.game.findFirst({ where: eq(game.slug, input) })),
+  bySlug: publicProcedure.input(gameSlugSchema).query(async ({ ctx, input }) => {
+    const [found] = await ctx.db
+      .select()
+      .from(game)
+      .where(eq(game.slug, input))
+      .limit(1)
+      .$withCache(STATIC_CONTENT)
+    return found
+  }),
 
   packs: publicProcedure.input(gameSlugSchema).query(async ({ ctx, input }) => {
-    const found = await ctx.db.query.game.findFirst({ where: eq(game.slug, input) })
+    const [found] = await ctx.db
+      .select({ id: game.id })
+      .from(game)
+      .where(eq(game.slug, input))
+      .limit(1)
+      .$withCache(STATIC_CONTENT)
     if (!found) return []
-    return ctx.db.query.gamePack.findMany({
-      where: eq(gamePack.gameId, found.id),
-      orderBy: asc(gamePack.name),
-    })
+
+    return ctx.db
+      .select()
+      .from(gamePack)
+      .where(eq(gamePack.gameId, found.id))
+      .orderBy(asc(gamePack.name))
+      .$withCache(STATIC_CONTENT)
   }),
 })

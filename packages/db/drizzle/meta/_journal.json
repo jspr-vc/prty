@@ -8,6 +8,13 @@
       "when": 1788066176309,
       "tag": "0000_lean_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788103094198,
+      "tag": "0001_gigantic_excalibur",
+      "breakpoints": true
     }
   ]
 }

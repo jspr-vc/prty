@@ -1,0 +1,106 @@
+name: Migrate
+
+# Manual only. Applying a migration is the one action here that cannot be
+# rolled back by redeploying, so it never runs off a push.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What to do
+        type: choice
+        default: check
+        options:
+          - check
+          - apply
+      seed:
+        description: Also run the seed (games and question packs) after applying
+        type: boolean
+        default: false
+
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Lint, types, build
+    runs-on: ubuntu-latest
+    env:
+      SKIP_ENV_VALIDATION: '1'
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bunx biome ci .
+      - run: bun run typecheck
+      - run: bun run build
+
+  status:
+    name: Pending migrations
+    needs: check
+    runs-on: ubuntu-latest
+    outputs:
+      pending: ${{ steps.status.outputs.pending }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+
+      - name: Compare the migrations folder against the database
+        id: status
+        working-directory: packages/db
+        env:
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+        run: bun run src/migrate-status.ts
+
+      - name: Summarise
+        run: |
+          if [ "${{ steps.status.outputs.pending }}" = "0" ]; then
+            echo "Database is up to date; nothing to apply." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "${{ steps.status.outputs.pending }} migration(s) pending." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  apply:
+    name: Apply to production
+    needs: status
+    # Only on an explicit apply, only when something is actually pending, and
+    # only from main — a dispatch can be aimed at any branch.
+    if: >-
+      inputs.mode == 'apply' &&
+      needs.status.outputs.pending != '0' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+
+      - name: Apply migrations
+        working-directory: packages/db
+        env:
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+        run: bunx drizzle-kit migrate
+
+      - name: Seed games and packs
+        if: inputs.seed
+        working-directory: packages/db
+        env:
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+        run: bun run src/seed/index.ts
+
+      - name: Confirm
+        working-directory: packages/db
+        env:
+          DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+        run: |
+          bun run src/migrate-status.ts | tee -a "$GITHUB_STEP_SUMMARY"

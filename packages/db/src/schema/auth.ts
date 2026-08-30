@@ -2,8 +2,10 @@ import { boolean, pgSchema, text, timestamp } from 'drizzle-orm/pg-core'
 
 /**
  * better-auth owns these tables. The field list is whatever
- * `getAuthTables(auth.options)` reports for the configured plugins; there is no
- * `verification` table because secondary storage keeps those records in redis.
+ * `getAuthTables(auth.options)` reports for the configured plugins. The
+ * `verification` table is only used when redis is not configured — better-auth
+ * keeps those records in secondary storage when it has one — but it costs
+ * nothing to have and the app must work either way.
  */
 export const authSchema = pgSchema('better_auth')
 
@@ -57,6 +59,18 @@ export const account = authSchema.table('account', {
   refreshTokenExpiresAt: timestamp({ withTimezone: true }),
   scope: text(),
   password: text(),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp({ withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+})
+
+export const verification = authSchema.table('verification', {
+  id: text().primaryKey(),
+  identifier: text().notNull(),
+  value: text().notNull(),
+  expiresAt: timestamp({ withTimezone: true }).notNull(),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()

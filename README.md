@@ -109,10 +109,27 @@ handler and reads the session:
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase → Project Settings → API → Project URL               |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon/publishable key      |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Supabase → Project Settings → API → service_role key (secret) |
-| `UPSTASH_REDIS_REST_URL`        | Upstash → your database → REST API                            |
-| `UPSTASH_REDIS_REST_TOKEN`      | Upstash → your database → REST API                            |
+| `UPSTASH_REDIS_REST_URL`        | Optional — Upstash → your database → REST API                 |
+| `UPSTASH_REDIS_REST_TOKEN`      | Optional — Upstash → your database → REST API                 |
 | `BETTER_AUTH_SECRET`            | Generate one: `openssl rand -base64 32`                       |
 | `BETTER_AUTH_URL`               | `https://prty-gm.jspr.vc`                                     |
+
+#### Redis is optional
+
+Leave the two `UPSTASH_*` variables unset and the app runs without redis. Postgres
+is always the source of truth: sessions are stored there regardless, and
+better-auth falls back to the `verification` table for the records it would
+otherwise keep in secondary storage. You lose a session-lookup cache, nothing else.
+
+For query caching there is a small in-process `Map` (`packages/db/src/cache.ts`)
+wired into drizzle in **explicit** mode — a query is cached only if it asks, with
+`.$withCache()`. Today that is just the game registry and the question packs,
+which change when you run the seed and effectively never otherwise. Nothing about
+a live session is cached, on purpose: a stale board is worse than a slow one.
+
+Note that this cache is per-process. On serverless each instance keeps its own,
+and a mutation only clears the instance that made it, so do not extend it to rows
+a host edits mid-show.
 
 #### Which connection string
 
@@ -165,6 +182,21 @@ DIRECT_DATABASE_URL='<session pooler url>' bun run db:seed
 Redeploy both projects so the new variables are baked into the client bundles —
 `NEXT_PUBLIC_*` values are inlined at build time, so changing them requires a
 rebuild, not just a restart.
+
+## CI
+
+| Workflow | Trigger | What it does |
+| -------- | ------- | ------------ |
+| `CI` | PRs against `main` | biome, typecheck, build, and a check that the schema and the committed migrations agree |
+| `Migrate` | Manual (`workflow_dispatch`) | The same checks, then reports pending migrations; with `mode: apply` it runs them |
+
+`Migrate` defaults to `check`, which only reports. Choosing `apply` runs the
+migrations, and only when something is actually pending and the run is on `main`.
+It uses a `production` GitHub environment, so you can add required reviewers to it
+if you want a second pair of eyes before anything touches the database.
+
+Add one repository secret for it: **`DIRECT_DATABASE_URL`**, the session-pooler
+string. Nothing else in CI needs credentials.
 
 ## Commands
 

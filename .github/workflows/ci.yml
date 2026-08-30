@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # No database or redis is reachable from CI, and none of these steps needs
+  # either: the apps validate their env at build time, and drizzle-kit only
+  # reads the schema. Redis is optional at runtime too.
+  SKIP_ENV_VALIDATION: '1'
+  DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+
+jobs:
+  check:
+    name: Lint, types, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - run: bun install --frozen-lockfile
+
+      - name: Lint and format
+        run: bunx biome ci .
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Build
+        run: bun run build
+
+  migrations:
+    name: Migrations are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - run: bun install --frozen-lockfile
+
+      # Regenerating must be a no-op. If it writes a file, the schema was
+      # changed without committing the migration that goes with it, and prod
+      # would deploy code expecting columns the database does not have.
+      - name: Schema and migrations agree
+        run: |
+          cd packages/db
+          bunx drizzle-kit generate
+          cd ../..
+          if ! git diff --quiet --exit-code packages/db/drizzle; then
+            echo "::error::Schema changed but no migration was committed."
+            echo "Run 'bun run db:generate' and commit the result:"
+            git --no-pager diff --stat packages/db/drizzle
+            exit 1
+          fi
+          echo "Schema matches the committed migrations."
