@@ -3,9 +3,9 @@
 Turborepo + bun monorepo. One Next.js app over shared packages, one package per game.
 
 `apps/web` serves three surfaces as route groups, each with its own root layout:
-`(tv)` the big screen, `(player)` the phones, `(console)` the host. In production
-one Vercel project answers on both `prty.jspr.vc` (TV + join) and
-`prty-gm.jspr.vc` (console).
+`(tv)` the big screen at `/` and `/s/:code`, `(player)` the phones at
+`/join/:code`, `(console)` the host at `/host`. One Vercel project, one domain
+(`prty.jspr.vc`), everything same-origin.
 
 ## Ports
 
@@ -23,14 +23,13 @@ Do not move these back to Supabase's standard ports.
 
 ## Rules that are easy to get wrong
 
-- **The join page stays on the TV host.** That is what makes the QR code a
-  same-origin path with no URL to configure. Do not move it under `(console)`.
-- **No `NEXT_PUBLIC_*` of our own.** Anything the browser needs about another
-  host is passed down as a prop from a server component; `NEXT_PUBLIC_` values
-  are inlined at build time and silently go stale.
-- **Host routing lives in `apps/web/vercel.json`, not middleware.** Next
-  middleware runs on the edge runtime and cannot read server env vars — this was
-  tried and does not work.
+- **Everything is same-origin, and no URL of ours lives in the environment.**
+  The QR code is built server-side from the request headers; the console links
+  to the TV with a relative path. Never reintroduce a `NEXT_PUBLIC_*` URL — those
+  are inlined at build time and go stale silently, which is exactly how the QR
+  code used to break.
+- **Next middleware cannot read server env vars** (it runs on the edge runtime).
+  This was tried for host routing and does not work; do not reach for it.
 - **The reducer only ever runs on the server**, in `match.dispatch` / `match.playerAction`.
   Clients render state; they never compute it. This is what keeps the TV and the host
   console from disagreeing.

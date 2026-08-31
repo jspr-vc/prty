@@ -16,7 +16,7 @@ export default async function SessionPage({ params }: { params: Promise<{ code: 
 
   return (
     <HydrateClient>
-      <SessionConsole code={normalized} tvUrl={process.env.TV_URL ?? ''} />
+      <SessionConsole code={normalized} />
     </HydrateClient>
   )
 }

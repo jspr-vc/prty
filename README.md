@@ -72,32 +72,27 @@ without any configuration.
 
 ## Deployment
 
-One Vercel project, `gameshows-gameclient`, root directory `apps/web`, serving
-both domains:
+One Vercel project, `gameshows-gameclient`, root directory `apps/web`, one
+domain — **https://prty.jspr.vc**. Every surface is a path on it:
 
-| Domain               | Surface                          |
-| -------------------- | -------------------------------- |
-| `prty.jspr.vc`       | The big screen, and player phones |
-| `prty-gm.jspr.vc`    | The host console                  |
+| Path                 | Surface                                        |
+| -------------------- | ---------------------------------------------- |
+| `/`, `/s/:code`      | The big screen                                 |
+| `/join/:code`        | Player phones, reached by scanning the TV's QR |
+| `/host`, `/host/:code` | The host console                             |
+| `/sign-in`           | Host sign-in                                   |
 
-Both domains point at the same deployment, so every path is reachable from
-either. `apps/web/vercel.json` redirects `/` on the console host to `/host`;
-that is a Vercel rule rather than Next middleware because middleware runs on the
-edge runtime, which cannot see server environment variables.
-
-The join page lives on the TV host on purpose: the QR code the room scans is
-then a same-origin path, so there is no cross-origin URL to configure and
-nothing to rebuild when a domain changes.
+Everything is same-origin, which is what keeps the configuration this small:
+the QR code is a relative path, the console links to the TV with a relative
+path, and there is not a single URL of our own in the environment.
 
 ### DNS
 
-`jspr.vc` runs on external nameservers (Namecheap). Each subdomain has its own
-dedicated Vercel target:
+`jspr.vc` runs on external nameservers (Namecheap):
 
-| Type    | Host      | Value                                  |
-| ------- | --------- | -------------------------------------- |
-| `CNAME` | `prty`    | `88129cb626c6bcea.vercel-dns-017.com.` |
-| `CNAME` | `prty-gm` | `bab298c54d4a7a1f.vercel-dns-017.com.` |
+| Type    | Host   | Value                                  |
+| ------- | ------ | -------------------------------------- |
+| `CNAME` | `prty` | `88129cb626c6bcea.vercel-dns-017.com.` |
 
 ### Environment variables
 
@@ -111,15 +106,13 @@ production — those all point at local containers.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes      | Supabase → Settings → API → anon key                          |
 | `SUPABASE_SERVICE_ROLE_KEY`     | yes      | Supabase → Settings → API → service_role key                  |
 | `BETTER_AUTH_SECRET`            | yes      | Generate one: `openssl rand -base64 32`                       |
-| `BETTER_AUTH_URL`               | yes      | `https://prty-gm.jspr.vc` — where sign-in happens             |
-| `TV_URL`                        | no       | `https://prty.jspr.vc` — only for the console's "Open TV view" |
+| `BETTER_AUTH_URL`               | yes      | `https://prty.jspr.vc`                                        |
 | `UPSTASH_REDIS_REST_URL`        | no       | Upstash → your database → REST API                            |
 | `UPSTASH_REDIS_REST_TOKEN`      | no       | Upstash → your database → REST API                            |
 
-`TV_URL` is read at runtime by a server component, so changing it needs no
-rebuild. There are no `NEXT_PUBLIC_*` values of our own left: everything the
-browser needs is passed down as a prop, which is what removed the old
-"change the domain, rebuild or the QR code is wrong" trap.
+There is not one URL of our own in that list, and no `NEXT_PUBLIC_*` values
+either. Everything is same-origin and resolved from the request, so changing the
+domain needs no rebuild and cannot leave the QR code pointing somewhere stale.
 
 #### Redis is optional
 

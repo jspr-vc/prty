@@ -8,13 +8,6 @@ export const env = createEnv({
   extends: [authEnv, dbEnv, realtimeEnv],
   server: {
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    /**
-     * Optional. Unset, every surface is served from one origin. Set, the TV and
-     * the host console live on separate hosts and the middleware routes between
-     * them. Read at runtime, so changing a domain needs no rebuild.
-     */
-    TV_URL: z.url().optional(),
-    CONSOLE_URL: z.url().optional(),
   },
   experimental__runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

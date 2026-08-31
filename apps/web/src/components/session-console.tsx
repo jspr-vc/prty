@@ -9,7 +9,7 @@ import { LobbyPanel } from '@/components/lobby-panel'
 import { StartMatchPanel } from '@/components/start-match-panel'
 import { GameControl } from '@/games/registry'
 
-export function SessionConsole({ code, tvUrl }: { code: string; tvUrl: string }) {
+export function SessionConsole({ code }: { code: string }) {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
   const sessionQuery = useQuery(trpc.session.byCode.queryOptions(code))
@@ -26,14 +26,14 @@ export function SessionConsole({ code, tvUrl }: { code: string; tvUrl: string })
 
   if (sessionQuery.isPending) {
     return (
-      <Shell code={code} tvUrl={tvUrl}>
+      <Shell code={code}>
         <p className="text-muted-foreground text-sm">Loading…</p>
       </Shell>
     )
   }
   if (!session) {
     return (
-      <Shell code={code} tvUrl={tvUrl}>
+      <Shell code={code}>
         <p className="text-destructive text-sm">No session with that code.</p>
       </Shell>
     )
@@ -50,7 +50,7 @@ export function SessionConsole({ code, tvUrl }: { code: string; tvUrl: string })
   }
 
   return (
-    <Shell code={code} tvUrl={tvUrl} name={session.name} connection={connection}>
+    <Shell code={code} name={session.name} connection={connection}>
       <div className="grid gap-8 lg:grid-cols-[320px_1fr]">
         <div className="space-y-8">
           <LobbyPanel session={session} onChanged={invalidate} />
@@ -96,13 +96,11 @@ export function SessionConsole({ code, tvUrl }: { code: string; tvUrl: string })
 
 function Shell({
   code,
-  tvUrl,
   name,
   connection,
   children,
 }: {
   code: string
-  tvUrl: string
   name?: string
   connection?: 'connecting' | 'connected' | 'error'
   children: React.ReactNode
@@ -118,7 +116,7 @@ function Shell({
           </p>
         </div>
         <a
-          href={`${tvUrl}/s/${code}`}
+          href={`/s/${code}`}
           target="_blank"
           rel="noreferrer"
           className="text-sm underline underline-offset-4"
