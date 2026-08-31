@@ -87,7 +87,11 @@ jobs:
       - name: Apply migrations
         working-directory: packages/db
         env:
+          # drizzle-kit loads the validated env, which requires DATABASE_URL even
+          # though the config prefers DIRECT_DATABASE_URL. Both point at the
+          # session pooler here; only migrations run in this job.
           DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
         run: bunx drizzle-kit migrate
 
       - name: Seed games and packs
