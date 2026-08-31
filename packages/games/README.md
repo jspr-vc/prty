@@ -20,8 +20,8 @@ packages/games/<slug>/
     actions.ts               discriminated union of everything the host can do
     reducer.ts               createState + a pure (pack, state, action, ctx) => state
     index.ts                 the GameDefinition object
-    components/display.tsx   the TV view (gameclient)
-    components/control.tsx   the host view (gamemaster)
+    components/display.tsx   the TV view
+    components/control.tsx   the host view
 ```
 
 `registry` must stay free of React: `packages/api` imports it to run reducers on the
@@ -33,5 +33,5 @@ server. Components are imported directly by the apps from `<pkg>/display` and
 1. Copy the shape above into `packages/games/<slug>`.
 2. Add the slug to `GAME_SLUGS` in `@workspace/common/consts`.
 3. Register the definition in `packages/games/registry/src/index.ts`.
-4. Map the components in each app's `src/games/registry.tsx`.
+4. Map the components in `apps/web/src/games/registry.tsx`.
 5. Add a row to the `game` table and a pack (see `packages/db/src/seed.ts`).

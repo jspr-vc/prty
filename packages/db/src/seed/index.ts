@@ -4,17 +4,25 @@ import { familyFeud, jeopardy } from '@workspace/games'
 import { eq } from 'drizzle-orm'
 import { db, sql } from '../client'
 import { game, gamePack } from '../schema'
+import { generalSurveyPack } from './feud-general'
 import { devSurveyPack } from './feud-pack'
+import { generalTriviaPack } from './jeopardy-general'
 import { devTriviaPack } from './jeopardy-pack'
 
 const entries = [
   {
     definition: jeopardy,
-    packs: [{ slug: 'dev-trivia', name: 'Dev Trivia', content: devTriviaPack }],
+    packs: [
+      { slug: 'general-trivia', name: 'General Trivia', content: generalTriviaPack },
+      { slug: 'dev-trivia', name: 'Dev Trivia', content: devTriviaPack },
+    ],
   },
   {
     definition: familyFeud,
-    packs: [{ slug: 'dev-surveys', name: 'Dev Surveys', content: devSurveyPack }],
+    packs: [
+      { slug: 'general-surveys', name: 'General Surveys', content: generalSurveyPack },
+      { slug: 'dev-surveys', name: 'Dev Surveys', content: devSurveyPack },
+    ],
   },
 ]
 

@@ -1,6 +1,11 @@
 # Gameshows
 
-Turborepo + bun monorepo. Two Next.js apps over shared packages, one package per game.
+Turborepo + bun monorepo. One Next.js app over shared packages, one package per game.
+
+`apps/web` serves three surfaces as route groups, each with its own root layout:
+`(tv)` the big screen, `(player)` the phones, `(console)` the host. In production
+one Vercel project answers on both `prty.jspr.vc` (TV + join) and
+`prty-gm.jspr.vc` (console).
 
 ## Ports
 
@@ -9,8 +14,7 @@ Do not move these back to Supabase's standard ports.
 
 | Service            | Port  |
 | ------------------ | ----- |
-| gamemaster         | 3000  |
-| gameclient         | 3001  |
+| web                | 3000  |
 | Supabase API       | 54331 |
 | Postgres           | 54332 |
 | Supabase Studio    | 54333 |
@@ -19,6 +23,14 @@ Do not move these back to Supabase's standard ports.
 
 ## Rules that are easy to get wrong
 
+- **The join page stays on the TV host.** That is what makes the QR code a
+  same-origin path with no URL to configure. Do not move it under `(console)`.
+- **No `NEXT_PUBLIC_*` of our own.** Anything the browser needs about another
+  host is passed down as a prop from a server component; `NEXT_PUBLIC_` values
+  are inlined at build time and silently go stale.
+- **Host routing lives in `apps/web/vercel.json`, not middleware.** Next
+  middleware runs on the edge runtime and cannot read server env vars — this was
+  tried and does not work.
 - **The reducer only ever runs on the server**, in `match.dispatch` / `match.playerAction`.
   Clients render state; they never compute it. This is what keeps the TV and the host
   console from disagreeing.
@@ -47,8 +59,8 @@ because bun and Next only read `.env` from their own working directory.
 ## Adding a game
 
 See `packages/games/README.md`. In short: implement `GameDefinition`, add the slug to
-`GAME_SLUGS`, register it in `packages/games/registry`, map its components in each app's
-`src/games/registry.tsx`, and seed a pack.
+`GAME_SLUGS`, register it in `packages/games/registry`, map its components in
+`apps/web/src/games/registry.tsx`, and seed a pack.
 
 ## The big screen ("stage")
 
@@ -72,7 +84,7 @@ See `packages/games/README.md`. In short: implement `GameDefinition`, add the sl
 - Cues are synthesised with the Web Audio API in `@workspace/ui/lib/sound` — no audio
   files in the repo. There is no in-app volume control; the room has one.
 - Browsers block audio until the page sees a *trusted* gesture. `SoundUnlock` (mounted
-  in the gameclient root layout) takes the first pointer/key/touch event and resumes the
+  in the `(tv)` and `(player)` layouts) takes the first pointer/key/touch event and resumes the
   context silently. Typing the room code counts, and the client-side navigation to
   `/s/<code>` keeps the same document, so the normal TV flow needs no extra click.
   A deep link straight to `/s/<code>` stays silent until someone touches the screen —

@@ -10,7 +10,13 @@ import { createTRPCRouter, publicProcedure } from '../trpc'
  * session is deliberately left uncached — a stale board would be worse than a
  * slow one.
  */
-const STATIC_CONTENT = { config: { ex: 300 } } as const
+/**
+ * A minute, not longer. The seed runs in its own process, so it cannot
+ * invalidate a running server's cache — a long TTL means newly seeded games and
+ * packs simply do not appear, which is confusing enough to be worse than the
+ * queries it saves.
+ */
+const STATIC_CONTENT = { config: { ex: 60 } } as const
 
 export const gameRouter = createTRPCRouter({
   list: publicProcedure.query(({ ctx }) =>

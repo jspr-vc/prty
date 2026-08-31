@@ -12,38 +12,8 @@
         "typescript": "catalog:",
       },
     },
-    "apps/gameclient": {
-      "name": "@workspace/gameclient",
-      "version": "0.0.0",
-      "dependencies": {
-        "@t3-oss/env-nextjs": "catalog:",
-        "@tanstack/react-query": "catalog:",
-        "@workspace/api": "workspace:*",
-        "@workspace/auth": "workspace:*",
-        "@workspace/common": "workspace:*",
-        "@workspace/db": "workspace:*",
-        "@workspace/game-family-feud": "workspace:*",
-        "@workspace/game-jeopardy": "workspace:*",
-        "@workspace/realtime": "workspace:*",
-        "@workspace/ui": "workspace:*",
-        "next": "catalog:",
-        "react": "catalog:",
-        "react-dom": "catalog:",
-        "react-qr-code": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@tailwindcss/postcss": "catalog:",
-        "@types/node": "catalog:",
-        "@types/react": "catalog:",
-        "@types/react-dom": "catalog:",
-        "@workspace/typescript-config": "workspace:*",
-        "tailwindcss": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
-    "apps/gamemaster": {
-      "name": "@workspace/gamemaster",
+    "apps/web": {
+      "name": "@workspace/web",
       "version": "0.0.0",
       "dependencies": {
         "@t3-oss/env-nextjs": "catalog:",
@@ -60,6 +30,7 @@
         "next": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
+        "react-qr-code": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -640,10 +611,6 @@
 
     "@workspace/game-jeopardy": ["@workspace/game-jeopardy@workspace:packages/games/jeopardy"],
 
-    "@workspace/gameclient": ["@workspace/gameclient@workspace:apps/gameclient"],
-
-    "@workspace/gamemaster": ["@workspace/gamemaster@workspace:apps/gamemaster"],
-
     "@workspace/games": ["@workspace/games@workspace:packages/games/registry"],
 
     "@workspace/realtime": ["@workspace/realtime@workspace:packages/realtime"],
@@ -651,6 +618,8 @@
     "@workspace/typescript-config": ["@workspace/typescript-config@workspace:packages/typescript-config"],
 
     "@workspace/ui": ["@workspace/ui@workspace:packages/ui"],
+
+    "@workspace/web": ["@workspace/web@workspace:apps/web"],
 
     "baseline-browser-mapping": ["baseline-browser-mapping@2.11.20", "", { "bin": { "baseline-browser-mapping": "dist/cli.cjs" } }, "sha512-H0ulySigv6icDJ1F7SjtdCD6PrhTpdYCmP0CactWy1+ekh0AFd0o1Wn5T8b+hnTmdBx19u9yhL6wvCylXMY7zw=="],
 

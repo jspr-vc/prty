@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "prty-gm.jspr.vc" }],
+      "destination": "/host",
+      "permanent": false
+    }
+  ]
+}

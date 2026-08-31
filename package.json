@@ -17,7 +17,7 @@
     "infra:up": "bunx supabase start && docker compose up -d",
     "infra:down": "docker compose down && bunx supabase stop",
     "infra:status": "bunx supabase status",
-    "env:link": "test -f .env && ln -sfn ../../.env apps/gamemaster/.env && ln -sfn ../../.env apps/gameclient/.env || true",
+    "env:link": "test -f .env && ln -sfn ../../.env apps/web/.env || true",
     "prepare": "lefthook install || true; bun run env:link || true",
     "db:status": "turbo run db:status"
   },

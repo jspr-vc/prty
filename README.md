@@ -7,23 +7,24 @@ console, and one package per game.
 
 | Surface           | Where                            | Who touches it                                |
 | ----------------- | -------------------------------- | --------------------------------------------- |
-| **Big screen**    | `apps/gameclient` (port 3001)    | Nobody. It only renders server state.         |
-| **Host console**  | `apps/gamemaster` (port 3000)    | You. Every control lives here.                |
-| **Player phones** | `apps/gamemaster` at `/join/:code` | Players, via the QR code on the big screen. |
+| **Big screen**    | `apps/web` at `/` and `/s/:code` | Nobody. It only renders server state.         |
+| **Host console**  | `apps/web` at `/host`            | You. Every control lives here.                |
+| **Player phones** | `apps/web` at `/join/:code`      | Players, via the QR code on the big screen. |
 
 Phones are not just a sign-up form: once a match is running they become buzzers.
 In Jeopardy a player buzzes in and enters their own daily-double wager; in Family
 Feud they race for the face-off. The host still judges everything.
 
-The player join flow lives in `gamemaster` because `gameclient` is deliberately
-non-interactive; the TV only ever displays.
+All three are one Next.js app, split into route groups with their own layouts.
+The join page sits alongside the TV rather than the console so that the QR code
+is a same-origin path.
 
 ### Flow
 
 1. Sign in on the console and create a night (a **session**), e.g. "Dev Friends Night".
    You get a four-character code.
 2. Open the big screen and enter that code. It shows a QR code pointing at
-   `NEXT_PUBLIC_GAMEMASTER_URL/join/<code>`.
+   `/join/<code>` on the same host.
 3. Everyone scans and registers their own name and team. The TV lobby fills in live.
 4. Pick a game and a question pack on the console. The TV switches to the game board.
 5. Every control is on the console; the TV and every phone follow over Supabase Realtime.
@@ -36,8 +37,7 @@ different group is just a second session.
 
 | Path                          | What                                                          |
 | ----------------------------- | ------------------------------------------------------------- |
-| `apps/gameclient`             | Big-screen display, read-only                                 |
-| `apps/gamemaster`             | Host console + player registration                            |
+| `apps/web`                    | All three surfaces, as route groups with their own layouts    |
 | `packages/api`                | tRPC router, context, handler, react/server glue              |
 | `packages/auth`               | better-auth (organization + admin plugins), access control    |
 | `packages/db`                 | drizzle-orm + postgres-js, Upstash redis client, schema, seed |
@@ -58,61 +58,68 @@ bun run db:seed       # registers Jeopardy and Family Feud with a starter pack e
 bun run dev
 ```
 
-- Host console: http://localhost:3000
-- Big screen: http://localhost:3001
+- Big screen: http://localhost:3000
+- Host console: http://localhost:3000/host
 - Supabase Studio: http://127.0.0.1:54333
 
 Ports are shifted off the Supabase defaults (API 54331, db 54332, studio 54333,
 redis 6380, redis-http 8089) so this stack can run beside other local projects.
 
-**To play on real phones**, set `NEXT_PUBLIC_GAMEMASTER_URL` to your machine's LAN
-address (e.g. `http://192.168.1.6:3000`) so the QR code resolves off-device.
+**To play on real phones**, open the big screen at your machine's LAN address
+(e.g. `http://192.168.1.6:3000`) rather than `localhost`. The QR code is built
+from whatever origin the TV is being viewed on, so it will resolve off-device
+without any configuration.
 
 ## Deployment
 
-Two Vercel projects, both building from this repo with a Root Directory set:
+One Vercel project, `gameshows-gameclient`, root directory `apps/web`, serving
+both domains:
 
-| Project                | Root directory    | Domain                    |
-| ---------------------- | ----------------- | ------------------------- |
-| `gameshows-gameclient` | `apps/gameclient` | https://prty.jspr.vc      |
-| `gameshows-gamemaster` | `apps/gamemaster` | https://prty-gm.jspr.vc   |
+| Domain               | Surface                          |
+| -------------------- | -------------------------------- |
+| `prty.jspr.vc`       | The big screen, and player phones |
+| `prty-gm.jspr.vc`    | The host console                  |
 
-Both are connected to `main`, so a push deploys both. The
-`*.vercel.app` URLs keep working alongside the custom domains.
+Both domains point at the same deployment, so every path is reachable from
+either. `apps/web/vercel.json` redirects `/` on the console host to `/host`;
+that is a Vercel rule rather than Next middleware because middleware runs on the
+edge runtime, which cannot see server environment variables.
+
+The join page lives on the TV host on purpose: the QR code the room scans is
+then a same-origin path, so there is no cross-origin URL to configure and
+nothing to rebuild when a domain changes.
 
 ### DNS
 
-`jspr.vc` runs on external nameservers (Namecheap), so both records are added
-there. Each subdomain has its own dedicated Vercel target:
+`jspr.vc` runs on external nameservers (Namecheap). Each subdomain has its own
+dedicated Vercel target:
 
 | Type    | Host      | Value                                  |
 | ------- | --------- | -------------------------------------- |
 | `CNAME` | `prty`    | `88129cb626c6bcea.vercel-dns-017.com.` |
 | `CNAME` | `prty-gm` | `bab298c54d4a7a1f.vercel-dns-017.com.` |
 
-`cname.vercel-dns.com.` also works for either, but the dedicated targets are
-what Vercel recommends. Certificates are issued automatically once the records
-resolve.
-
 ### Environment variables
 
-Nothing in `.env.example` works in production — those values all point at the
-local Supabase and Redis containers. You need a hosted Supabase project and an
-Upstash Redis database, then set the following in each Vercel project.
+One project now, so one set of variables. Nothing in `.env.example` works in
+production — those all point at local containers.
 
-**Both projects** need every server variable, because each one runs its own tRPC
-handler and reads the session:
+| Variable                        | Required | Where it comes from                                          |
+| ------------------------------- | :------: | ------------------------------------------------------------ |
+| `DATABASE_URL`                  | yes      | Supabase → Connect → **Transaction pooler** (port 6543)       |
+| `NEXT_PUBLIC_SUPABASE_URL`      | yes      | Supabase → Settings → API → Project URL                       |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes      | Supabase → Settings → API → anon key                          |
+| `SUPABASE_SERVICE_ROLE_KEY`     | yes      | Supabase → Settings → API → service_role key                  |
+| `BETTER_AUTH_SECRET`            | yes      | Generate one: `openssl rand -base64 32`                       |
+| `BETTER_AUTH_URL`               | yes      | `https://prty-gm.jspr.vc` — where sign-in happens             |
+| `TV_URL`                        | no       | `https://prty.jspr.vc` — only for the console's "Open TV view" |
+| `UPSTASH_REDIS_REST_URL`        | no       | Upstash → your database → REST API                            |
+| `UPSTASH_REDIS_REST_TOKEN`      | no       | Upstash → your database → REST API                            |
 
-| Variable                        | Where it comes from                                          |
-| ------------------------------- | ------------------------------------------------------------ |
-| `DATABASE_URL`                  | Supabase → Connect → **Transaction pooler** (port 6543)        |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase → Project Settings → API → Project URL               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon/publishable key      |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase → Project Settings → API → service_role key (secret) |
-| `UPSTASH_REDIS_REST_URL`        | Optional — Upstash → your database → REST API                 |
-| `UPSTASH_REDIS_REST_TOKEN`      | Optional — Upstash → your database → REST API                 |
-| `BETTER_AUTH_SECRET`            | Generate one: `openssl rand -base64 32`                       |
-| `BETTER_AUTH_URL`               | `https://prty-gm.jspr.vc`                                     |
+`TV_URL` is read at runtime by a server component, so changing it needs no
+rebuild. There are no `NEXT_PUBLIC_*` values of our own left: everything the
+browser needs is passed down as a prop, which is what removed the old
+"change the domain, rebuild or the QR code is wrong" trap.
 
 #### Redis is optional
 
@@ -129,7 +136,10 @@ a live session is cached, on purpose: a stale board is worse than a slow one.
 
 Note that this cache is per-process. On serverless each instance keeps its own,
 and a mutation only clears the instance that made it, so do not extend it to rows
-a host edits mid-show.
+a host edits mid-show. It is also why the TTL is only a minute: `db:seed` runs in
+its own process and cannot clear a running server's cache, so newly seeded packs
+would otherwise take five minutes to appear. Restart the app after seeding if you
+do not want to wait.
 
 #### Which connection string
 
@@ -158,17 +168,6 @@ the IPv4 add-on, and Vercel's build machines cannot reach them.
 machine, or CI. It falls back to `DATABASE_URL`, which is what local development
 uses since there is only one connection string there.
 
-Then the public URLs, which differ per project:
-
-| Variable                      | gameclient | gamemaster | Value                                     |
-| ----------------------------- | :--------: | :--------: | ----------------------------------------- |
-| `NEXT_PUBLIC_GAMEMASTER_URL`  | ✔          | ✔          | `https://prty-gm.jspr.vc` |
-| `NEXT_PUBLIC_GAMECLIENT_URL`  |            | ✔          | `https://prty.jspr.vc`    |
-
-`BETTER_AUTH_URL` points at the gamemaster in both projects: the auth routes only
-exist there. `NEXT_PUBLIC_GAMEMASTER_URL` is what the TV encodes into its QR code,
-so it must be the address a phone can reach.
-
 ### After the variables are set
 
 Run the migration and seed once from your machine, against the **session pooler**
@@ -183,104 +182,3 @@ Redeploy both projects so the new variables are baked into the client bundles �
 `NEXT_PUBLIC_*` values are inlined at build time, so changing them requires a
 rebuild, not just a restart.
 
-## CI
-
-| Workflow | Trigger | What it does |
-| -------- | ------- | ------------ |
-| `CI` | PRs against `main` | biome, typecheck, build, and a check that the schema and the committed migrations agree |
-| `Migrate` | Manual (`workflow_dispatch`) | The same checks, then reports pending migrations; with `mode: apply` it runs them |
-
-`Migrate` defaults to `check`, which only reports. Choosing `apply` runs the
-migrations, and only when something is actually pending and the run is on `main`.
-It uses a `production` GitHub environment, so you can add required reviewers to it
-if you want a second pair of eyes before anything touches the database.
-
-Add one repository secret for it: **`DIRECT_DATABASE_URL`**, the session-pooler
-string. Nothing else in CI needs credentials.
-
-## Commands
-
-| Command               | What                                     |
-| --------------------- | ---------------------------------------- |
-| `bun run dev`         | both apps via turbo                      |
-| `bun run build`       | build everything                         |
-| `bun run typecheck`   | tsc across the workspace                 |
-| `bun run format`      | biome check --write                      |
-| `bun run db:generate` | generate a drizzle migration             |
-| `bun run db:migrate`  | apply migrations                         |
-| `bun run db:seed`     | seed games and question packs            |
-| `bun run db:studio`   | drizzle studio                           |
-| `bun run infra:down`  | stop supabase and redis                  |
-
-`SKIP_ENV_VALIDATION=1` bypasses env validation (used in CI/Docker builds).
-
-## The big screen
-
-One fixed dark palette driven by `--stage-*` tokens, tuned for a mini-LED or OLED panel
-in a dark room: a near-black ground rather than a saturated colour, panels separated by a
-faint border instead of by brightness, and a foreground that stops short of pure white so
-bright text does not bloom. The host console is dark by default for the same reason.
-
-Type and spacing on the big screen are sized in `vw`/`vh`, not rem, via the `.stage-*`
-scale. A TV browser may report a 3840px viewport rather than scaling to 1920, and fixed
-sizes would then render at half the intended size. The layout is verified at both 1080p
-and 4K.
-
-## Sound and motion
-
-The big screen synthesises its cues with the Web Audio API — a buzz-in, a daily-double
-fanfare, strikes, reveals, round wins — so there are no audio files in the repo. There is
-no in-app volume control: use the TV's.
-
-Browsers refuse to start audio until the page has seen a real gesture, so the first
-pointer, key or touch event unlocks it silently. Typing the room code on the big screen
-is itself that gesture, so the normal flow needs no extra click. Opening a deep link to
-`/s/<code>` on an untouched screen stays silent until someone taps it — browser policy,
-not something the app can override.
-
-Because the TV only ever sees state and never the host's clicks, cues are derived by
-diffing one render against the next (`cueSignature` / `resolveCue` in `tv-screen.tsx`).
-Animation is plain CSS keyframes (`gs-*` in `globals.css`), and every one of them is
-switched off under `prefers-reduced-motion`.
-
-## How a game runs
-
-A game is a pure state machine. `packages/games/<slug>` exports a `GameDefinition`
-with zod schemas for its question pack, its state and its actions, plus a
-`reduce(pack, state, action, ctx)`.
-
-The reducer runs **only on the server**. The host console sends an action to
-`match.dispatch`; a player's phone sends one to `match.playerAction`. Either way the
-server validates it against the game's own schema, reduces, writes the new state and an
-append-only `match_event`, then broadcasts. The console and the TV cannot disagree about
-what happened, and every match is replayable from its event log.
-
-Phones authenticate with the join token they were handed at sign-up rather than a
-session cookie — nobody signs in to play. A game's `authorizePlayerAction` decides what
-a phone may do and stamps the caller's own id onto the action, so a phone cannot buzz in
-as somebody else or reach a host-only control. `session.byCode` is public, so it never
-returns those tokens.
-
-## Data model
-
-- `game_session` — a night. Has a code, a host, teams and players.
-- `team` / `session_player` — who is playing; players register themselves from their phones.
-- `game` / `game_pack` — the game registry and reusable question sets.
-- `match` — one playthrough of one game inside a session; `state` is the game's own jsonb.
-- `match_event` — every action ever applied, in order.
-
-## Notes
-
-- **Realtime authorization.** Broadcast channels are currently public, keyed by an
-  unguessable session UUID; the server is the only publisher (service-role key, HTTP
-  broadcast). Tightening this means switching to private channels and adding an RLS
-  policy on `realtime.messages`, which needs a Supabase-signed JWT minted from the
-  better-auth session.
-- Redis is served locally through `hiett/serverless-redis-http`, so the same
-  `@upstash/redis` client works locally and in production.
-- better-auth tables live in the `better_auth` postgres schema. There is no
-  `verification` table: with redis secondary storage configured, better-auth keeps
-  those records in redis. The field lists come from `getAuthTables(auth.options)`,
-  not from the (currently stale) `@better-auth/cli` generator.
-- Env lives in a single root `.env`. Each app's `.env` is a symlink to it (created by
-  `bun install`), and drizzle-kit loads it via `packages/db/load-env.ts`.
