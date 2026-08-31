@@ -92,7 +92,7 @@ jobs:
           # session pooler here; only migrations run in this job.
           DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
           DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
-        run: bunx drizzle-kit migrate
+        run: bun run src/migrate.ts
 
       - name: Seed games and packs
         if: inputs.seed
