@@ -81,8 +81,8 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'This fruit is technically a berry, and so is a banana.',
-              answer: 'What is a tomato?',
+              clue: "This Italian coffee-and-mascarpone dessert's name means 'pick me up'.",
+              answer: 'What is tiramisu?',
               dailyDouble: false,
             },
             {

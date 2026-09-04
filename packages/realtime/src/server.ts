@@ -1,29 +1,23 @@
-import 'server-only'
+import { type SessionEvent, sessionTopic } from './events'
+import type { ServerMessage } from './protocol'
 
-import { env } from './env-realtime'
-import { REALTIME_EVENT, type SessionEvent, sessionTopic } from './events'
+type Publisher = (topic: string, payload: string) => void
+
+let publish: Publisher | null = null
 
 /**
- * Publishes over Supabase Realtime's HTTP broadcast endpoint. Using HTTP rather
- * than a websocket keeps this safe to call from serverless request handlers,
- * which have no long-lived connection to reuse.
+ * The WebSocket server hands its publish function in at startup.
+ *
+ * Everything now runs in one process, so this is a function call rather than an
+ * HTTP round trip to a broker. Keeping it behind a registration seam is what
+ * stops `@workspace/api` from having to import `Bun.serve` to send a message.
  */
-export async function broadcastToSession(sessionId: string, event: SessionEvent): Promise<void> {
-  const response = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/realtime/v1/api/broadcast`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-    },
-    body: JSON.stringify({
-      messages: [{ topic: sessionTopic(sessionId), event: REALTIME_EVENT, payload: event }],
-    }),
-  })
+export function setPublisher(fn: Publisher | null): void {
+  publish = fn
+}
 
-  if (!response.ok) {
-    console.error(
-      `realtime broadcast failed (${response.status}): ${await response.text().catch(() => '')}`,
-    )
-  }
+export function broadcastToSession(sessionId: string, event: SessionEvent): void {
+  if (!publish) return
+  const message: ServerMessage = { type: 'event', event }
+  publish(sessionTopic(sessionId), JSON.stringify(message))
 }

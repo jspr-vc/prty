@@ -1,18 +1,18 @@
-'use client'
-
+import { useNavigate } from '@tanstack/react-router'
 import { SESSION_CODE_LENGTH } from '@workspace/common/consts'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export function CodeEntry() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [code, setCode] = useState('')
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault()
-        if (code.length === SESSION_CODE_LENGTH) router.push(`/s/${code}`)
+        if (code.length === SESSION_CODE_LENGTH) {
+          void navigate({ to: '/s/$code', params: { code } })
+        }
       }}
     >
       <input

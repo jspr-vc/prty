@@ -8,13 +8,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # No database or redis is reachable from CI, and none of these steps needs
-  # either: the apps validate their env at build time, and drizzle-kit only
-  # reads the schema. Redis is optional at runtime too.
-  SKIP_ENV_VALIDATION: '1'
-  DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
-
 jobs:
   check:
     name: Lint, types, build
@@ -34,8 +27,20 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
-      - name: Build
-        run: bun run build
+      # Also proves the client bundle still embeds into a working executable,
+      # which is the only artifact anyone actually runs.
+      - name: Build the binary
+        run: bun run build:binary
+
+      - name: The binary starts, migrates and serves
+        run: |
+          GAMESHOWS_DB="$RUNNER_TEMP/ci.db" ./bin/gameshows --port 4321 --pin 123456 &
+          for _ in $(seq 1 50); do
+            curl -sf http://127.0.0.1:4321/api/health >/dev/null && break
+            sleep 0.2
+          done
+          curl -sf http://127.0.0.1:4321/api/health | grep -q '"client":true'
+          curl -sf http://127.0.0.1:4321/ | grep -q '<div id="root">'
 
   migrations:
     name: Migrations are up to date
@@ -49,18 +54,16 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      # Regenerating must be a no-op. If it writes a file, the schema was
-      # changed without committing the migration that goes with it, and prod
-      # would deploy code expecting columns the database does not have.
-      - name: Schema and migrations agree
+      # Regenerating must be a no-op. If it writes a file, the schema was changed
+      # without committing the migration that goes with it, and the binary would
+      # ship code expecting columns its own migrations do not create.
+      - name: Schema, migrations and the generated module agree
         run: |
-          cd packages/db
-          bunx drizzle-kit generate
-          cd ../..
-          if ! git diff --quiet --exit-code packages/db/drizzle; then
+          bun run db:generate
+          if ! git diff --quiet --exit-code packages/db; then
             echo "::error::Schema changed but no migration was committed."
             echo "Run 'bun run db:generate' and commit the result:"
-            git --no-pager diff --stat packages/db/drizzle
+            git --no-pager diff --stat packages/db
             exit 1
           fi
           echo "Schema matches the committed migrations."

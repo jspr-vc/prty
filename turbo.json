@@ -1,26 +1,16 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalDependencies": [".env"],
-  "globalEnv": [
-    "NODE_ENV",
-    "SKIP_ENV_VALIDATION",
-    "DATABASE_URL",
-    "DIRECT_DATABASE_URL",
-    "UPSTASH_REDIS_REST_URL",
-    "UPSTASH_REDIS_REST_TOKEN",
-    "BETTER_AUTH_SECRET",
-    "BETTER_AUTH_URL",
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "NEXT_PUBLIC_TV_URL",
-    "NEXT_PUBLIC_CONSOLE_URL"
-  ],
+  "globalEnv": ["NODE_ENV", "GAMESHOWS_DB", "GAMESHOWS_PORT", "GAMESHOWS_PIN"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": ["dist/**", "src/assets.generated.js"]
+    },
+    "build:binary": {
+      "dependsOn": ["^build"],
+      "outputs": ["bin/**"],
+      "cache": false
     },
     "dev": {
       "cache": false,
@@ -35,18 +25,15 @@
     "db:migrate": {
       "cache": false
     },
-    "db:push": {
-      "cache": false
-    },
-    "db:studio": {
-      "cache": false,
-      "persistent": true
-    },
     "db:seed": {
       "cache": false
     },
     "db:status": {
       "cache": false
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

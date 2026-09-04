@@ -18,10 +18,16 @@ export function FeudDisplay({ pack, state, ctx }: Props) {
   if (!round) return null
 
   const buzzed = ctx.players.find((player) => player.id === state.buzzedPlayerId)
+  const faceOff = state.phase === 'face_off'
 
   return (
-    <div className="flex h-svh flex-col bg-stage text-stage-fg">
-      <div className="px-[4vw] pt-[3vh] text-center">
+    // `overflow-hidden` on the column, `shrink-0` on everything that must keep
+    // its size, and `min-h-0` on the part that gives way. Without the last of
+    // those a flex item refuses to shrink below its content, and a long question
+    // plus a buzz-in line pushed the scoreboard off the bottom of the screen —
+    // where the TV's `overflow-hidden` body meant it could not even be scrolled to.
+    <div className="flex h-svh flex-col overflow-hidden bg-stage text-stage-fg">
+      <div className="shrink-0 px-[4vw] pt-[3vh] text-center">
         <p className="stage-label font-semibold text-stage-muted uppercase tracking-[0.3em]">
           Round {state.roundIndex + 1} · {round.multiplier}× · Pot {state.pot * round.multiplier}
         </p>
@@ -38,8 +44,10 @@ export function FeudDisplay({ pack, state, ctx }: Props) {
         )}
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-[4vw] py-[2vh]">
-        <div className="grid h-[58vh] w-[84vw] auto-rows-fr grid-cols-1 gap-[1.4vh] sm:grid-cols-2">
+      {/* The board takes whatever the header, strikes and scores leave it,
+          rather than claiming a fixed slice of the viewport. */}
+      <div className="min-h-0 flex-1 px-[4vw] py-[2vh]">
+        <div className="grid h-full w-full auto-rows-fr grid-cols-1 gap-[1.4vh] sm:grid-cols-2">
           {round.answers.map((answer, index) => {
             const shown = state.revealed.includes(index)
             return (
@@ -63,15 +71,27 @@ export function FeudDisplay({ pack, state, ctx }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-[1vw] pb-[2vh]">
+      {/*
+       * The row is always three slots tall, whatever is in it. Rendering only
+       * the X's that had been given made the row zero-height until the first
+       * one, and the whole board resized underneath it mid-face-off.
+       *
+       * What differs is the empty slot. In a round it is outlined, because
+       * those are the two strikes still in hand. In a face-off it is hidden
+       * instead: an outlined box would promise a third chance that the face-off
+       * does not have.
+       */}
+      <div className="flex shrink-0 items-center justify-center gap-[1vw] pb-[2vh]">
         {Array.from({ length: MAX_STRIKES }, (_, index) => (
           <span
             key={index}
             className={cn(
               'stage-strike flex items-center justify-center rounded-md border-4 font-bold',
-              index < state.strikes
+              index < (faceOff ? state.faceOffMisses : state.strikes)
                 ? 'gs-pop border-stage-danger bg-stage-danger/15 text-stage-danger'
-                : 'border-stage-line text-transparent',
+                : faceOff
+                  ? 'invisible'
+                  : 'border-stage-line text-transparent',
             )}
           >
             X

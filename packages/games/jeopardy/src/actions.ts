@@ -8,12 +8,21 @@ export const jeopardyActionSchema = z.discriminatedUnion('type', [
   }),
   z.object({ type: z.literal('buzz'), playerId: z.string() }),
   z.object({ type: z.literal('clear_buzz') }),
+  z.object({ type: z.literal('set_buzzers_armed'), armed: z.boolean() }),
   z.object({ type: z.literal('judge'), correct: z.boolean() }),
   z.object({ type: z.literal('reveal_answer') }),
   z.object({ type: z.literal('return_to_board') }),
   z.object({ type: z.literal('set_wager'), playerId: z.string(), amount: z.number().int().min(0) }),
+  /** Ends the Daily Double wager and puts the clue on the screen. */
+  z.object({ type: z.literal('lock_wager') }),
   z.object({ type: z.literal('set_control'), playerId: z.string().nullable() }),
   z.object({ type: z.literal('adjust_score'), playerId: z.string(), delta: z.number().int() }),
+  z.object({ type: z.literal('set_score'), playerId: z.string(), value: z.number().int() }),
+  z.object({
+    type: z.literal('judge_final'),
+    playerId: z.string(),
+    correct: z.boolean(),
+  }),
   z.object({ type: z.literal('next_round') }),
   z.object({ type: z.literal('start_final') }),
   z.object({ type: z.literal('reveal_final') }),
@@ -29,7 +38,13 @@ export type JeopardyActionType = JeopardyAction['type']
  */
 export const jeopardyPlayerActionSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('buzz') }),
+  z.object({
+    type: z.literal('select_clue'),
+    categoryIndex: z.number().int().nonnegative(),
+    clueIndex: z.number().int().nonnegative(),
+  }),
   z.object({ type: z.literal('set_wager'), amount: z.number().int().min(0) }),
+  z.object({ type: z.literal('lock_wager') }),
 ])
 
 export type JeopardyPlayerAction = z.infer<typeof jeopardyPlayerActionSchema>

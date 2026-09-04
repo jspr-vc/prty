@@ -1,23 +1,14 @@
-import { createEnv } from '@t3-oss/env-nextjs'
-import { z } from 'zod'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
 
-export const env = createEnv({
-  server: {
-    DATABASE_URL: z.url(),
-    /**
-     * Optional. Migrations and seeds run DDL and want a session they can hold,
-     * which the transaction pooler cannot give them. Falls back to DATABASE_URL,
-     * which is right for local development where there is only one connection.
-     */
-    DIRECT_DATABASE_URL: z.url().optional(),
-    /**
-     * Optional. Without redis, sessions live in postgres alone and better-auth
-     * keeps verification records in the `verification` table instead.
-     */
-    UPSTASH_REDIS_REST_URL: z.url().optional(),
-    UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
-  },
-  experimental__runtimeEnv: process.env,
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
-  emptyStringAsUndefined: true,
-})
+/**
+ * Where the whole show lives: one SQLite file, plus the `-wal` and `-shm`
+ * sidecars WAL mode brings with it.
+ *
+ * Defaulting under the home directory rather than the working directory matters
+ * for the binary — a host who runs it from Downloads one night and from the
+ * desktop the next should still find last night's session.
+ */
+export function databasePath(): string {
+  return process.env.GAMESHOWS_DB ?? join(homedir(), '.gameshows', 'gameshows.db')
+}

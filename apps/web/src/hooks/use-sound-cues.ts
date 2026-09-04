@@ -1,5 +1,3 @@
-'use client'
-
 import type { Cue } from '@workspace/ui/lib/sound'
 import { play } from '@workspace/ui/lib/sound'
 import { useEffect, useRef } from 'react'

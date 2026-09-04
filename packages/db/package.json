@@ -7,33 +7,29 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema/index.ts",
     "./client": "./src/client.ts",
-    "./redis": "./src/redis.ts",
+    "./bootstrap": "./src/bootstrap.ts",
+    "./migrate": "./src/migrate.ts",
     "./env": "./src/env-db.ts"
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "bun run src/migrate.ts",
-    "db:push": "drizzle-kit push",
-    "db:seed": "bun run src/seed/index.ts",
-    "db:status": "bun run src/migrate-status.ts",
+    "db:generate": "drizzle-kit generate && bun run db:bundle",
+    "db:bundle": "bun run scripts/bundle-migrations.ts",
+    "db:migrate": "bun run scripts/cli.ts migrate",
+    "db:seed": "bun run scripts/cli.ts seed",
+    "db:status": "bun run scripts/cli.ts status",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@t3-oss/env-nextjs": "catalog:",
-    "@upstash/redis": "catalog:",
     "@workspace/common": "workspace:*",
     "@workspace/games": "workspace:*",
-    "drizzle-orm": "catalog:",
-    "postgres": "catalog:",
-    "zod": "catalog:"
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/bun": "catalog:",
     "@workspace/game-family-feud": "workspace:*",
     "@workspace/game-jeopardy": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "dotenv": "catalog:",
     "drizzle-kit": "catalog:",
     "typescript": "catalog:"
   }

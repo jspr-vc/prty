@@ -1,4 +1,4 @@
 export * from 'drizzle-orm'
-export { type Database, db, sql } from './client'
-export { redis } from './redis'
+export { type Database_ as Database, db, openDatabase, sqlite } from './client'
+export { databasePath } from './env-db'
 export * as schema from './schema'

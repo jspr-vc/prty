@@ -2,7 +2,13 @@ import type { GameDefinition } from '@workspace/common/game'
 import type { JeopardyAction } from './actions'
 import { jeopardyActionSchema } from './actions'
 import { type JeopardyPack, jeopardyPackSchema } from './content'
-import { authorizeJeopardyPlayerAction, createJeopardyState, reduceJeopardy } from './reducer'
+import {
+  authorizeJeopardyPlayerAction,
+  createJeopardyState,
+  jeopardyNarrationLines,
+  narrateJeopardy,
+  reduceJeopardy,
+} from './reducer'
 import { type JeopardyState, jeopardyStateSchema } from './state'
 
 export const jeopardy: GameDefinition<JeopardyPack, JeopardyState, JeopardyAction> = {
@@ -18,6 +24,10 @@ export const jeopardy: GameDefinition<JeopardyPack, JeopardyState, JeopardyActio
   reduce: reduceJeopardy,
   authorizePlayerAction: (raw, playerId, state) =>
     authorizeJeopardyPlayerAction(raw, playerId, state),
+  narrate: narrateJeopardy,
+  narrationLines: jeopardyNarrationLines,
+  buzzerAction: (playerId) => ({ type: 'buzz', playerId }),
+  buzzerResetAction: () => ({ type: 'clear_buzz' }),
 }
 
 export * from './actions'

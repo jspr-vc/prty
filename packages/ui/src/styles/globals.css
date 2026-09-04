@@ -26,6 +26,8 @@
   --stage-accent: #f0c23c;
   --stage-accent-fg: #0a0b0f;
   --stage-danger: #f0564a;
+  --stage-success: #4ecb7a;
+  --stage-success-fg: #0a0b0f;
 }
 
 :root {
@@ -145,6 +147,8 @@
   --color-stage-accent: var(--stage-accent);
   --color-stage-accent-fg: var(--stage-accent-fg);
   --color-stage-danger: var(--stage-danger);
+  --color-stage-success: var(--stage-success);
+  --color-stage-success-fg: var(--stage-success-fg);
 }
 
 @layer base {
@@ -316,7 +320,13 @@
   font-size: clamp(1.25rem, 1.9vw, 3.5rem);
 }
 .stage-qr {
-  width: clamp(12rem, 19vw, 34rem);
+  /*
+   * A floor in rem for a laptop preview, then pure vw — no upper cap. A rem
+   * ceiling here has the same bug as fixed type: on a 4K panel it stops the
+   * code growing and leaves the one thing every phone in the room has to scan
+   * smaller than it needs to be.
+   */
+  width: max(12rem, 19vw);
 }
 .stage-qr > svg {
   width: 100%;

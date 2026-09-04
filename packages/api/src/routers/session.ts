@@ -4,15 +4,17 @@ import {
   createSessionSchema,
   displayNameSchema,
   joinSessionSchema,
+  narrationModeSchema,
+  narrationRateSchema,
   playerTokenSchema,
   sessionCodeSchema,
 } from '@workspace/common/schemas'
 import { generatePlayerToken, generateSessionCode } from '@workspace/common/utils'
-import { and, asc, desc, eq } from '@workspace/db'
+import { and, asc, type Database, desc, eq } from '@workspace/db'
 import { gameSession, sessionPlayer, team } from '@workspace/db/schema'
 import { broadcastToSession } from '@workspace/realtime/server'
 import { z } from 'zod'
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc'
+import { createTRPCRouter, hostProcedure, publicProcedure } from '../trpc'
 
 const withEverything = {
   teams: { orderBy: asc(team.position) },
@@ -26,7 +28,7 @@ const withEverything = {
   activeMatch: { with: { game: true, pack: true } },
 } as const
 
-async function loadByCode(db: typeof import('@workspace/db').db, code: string) {
+async function loadByCode(db: Database, code: string) {
   const found = await db.query.gameSession.findFirst({
     where: eq(gameSession.code, code),
     with: withEverything,
@@ -36,7 +38,7 @@ async function loadByCode(db: typeof import('@workspace/db').db, code: string) {
 }
 
 /** Session codes are short, so collisions are possible; retry a handful of times. */
-async function allocateCode(db: typeof import('@workspace/db').db): Promise<string> {
+async function allocateCode(db: Database): Promise<string> {
   for (let attempt = 0; attempt < 10; attempt++) {
     const code = generateSessionCode()
     const taken = await db.query.gameSession.findFirst({ where: eq(gameSession.code, code) })
@@ -46,38 +48,37 @@ async function allocateCode(db: typeof import('@workspace/db').db): Promise<stri
 }
 
 export const sessionRouter = createTRPCRouter({
-  /** Read model for the TV and every player phone. No auth: the code is the key. */
+  /** Read model for the TV and every player phone. No PIN: the code is the key. */
   byCode: publicProcedure
     .input(sessionCodeSchema)
     .query(({ ctx, input }) => loadByCode(ctx.db, input)),
 
-  mine: protectedProcedure.query(({ ctx }) =>
+  /** Every night this box has hosted. There is only one host. */
+  list: hostProcedure.query(({ ctx }) =>
     ctx.db.query.gameSession.findMany({
-      where: eq(gameSession.hostUserId, ctx.user.id),
       orderBy: desc(gameSession.createdAt),
-      with: { players: true },
+      with: { players: { columns: { token: false } } },
     }),
   ),
 
-  create: protectedProcedure.input(createSessionSchema).mutation(async ({ ctx, input }) => {
+  create: hostProcedure.input(createSessionSchema).mutation(async ({ ctx, input }) => {
     const code = await allocateCode(ctx.db)
 
-    return ctx.db.transaction(async (tx) => {
-      const [created] = await tx
-        .insert(gameSession)
-        .values({ code, name: input.name, hostUserId: ctx.user.id })
-        .returning()
+    return ctx.db.transaction((tx) => {
+      const created = tx.insert(gameSession).values({ code, name: input.name }).returning().get()
       if (!created) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
 
       if (input.teamNames.length > 0) {
-        await tx.insert(team).values(
-          input.teamNames.map((name, index) => ({
-            sessionId: created.id,
-            name,
-            color: TEAM_COLORS[index % TEAM_COLORS.length] as string,
-            position: index,
-          })),
-        )
+        tx.insert(team)
+          .values(
+            input.teamNames.map((name, index) => ({
+              sessionId: created.id,
+              name,
+              color: TEAM_COLORS[index % TEAM_COLORS.length] as string,
+              position: index,
+            })),
+          )
+          .run()
       }
 
       return created
@@ -98,19 +99,19 @@ export const sessionRouter = createTRPCRouter({
       throw new TRPCError({ code: 'BAD_REQUEST', message: 'Unknown team' })
     }
 
-    const [player] = await ctx.db
+    const player = ctx.db
       .insert(sessionPlayer)
       .values({
         sessionId: session.id,
         teamId: input.teamId ?? null,
-        userId: ctx.user?.id ?? null,
         token: generatePlayerToken(),
         displayName: input.displayName,
       })
       .returning()
+      .get()
     if (!player) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
 
-    await broadcastToSession(session.id, {
+    broadcastToSession(session.id, {
       type: 'player_joined',
       playerId: player.id,
       displayName: player.displayName,
@@ -131,61 +132,97 @@ export const sessionRouter = createTRPCRouter({
       )
     }),
 
-  setRegistrationOpen: protectedProcedure
+  setRegistrationOpen: hostProcedure
     .input(z.object({ sessionId: z.uuid(), open: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db
+    .mutation(({ ctx, input }) => {
+      ctx.db
         .update(gameSession)
         .set({ registrationOpen: input.open })
         .where(eq(gameSession.id, input.sessionId))
-      await broadcastToSession(input.sessionId, { type: 'session_updated' })
+        .run()
+      broadcastToSession(input.sessionId, { type: 'session_updated' })
     }),
 
-  renamePlayer: protectedProcedure
+  /** How much of the board the big screen reads out loud, and in whose voice. */
+  setNarration: hostProcedure
+    .input(
+      z.object({
+        sessionId: z.uuid(),
+        mode: narrationModeSchema,
+        rate: narrationRateSchema.optional(),
+        voice: z.string().max(120).nullable().optional(),
+      }),
+    )
+    .mutation(({ ctx, input }) => {
+      ctx.db
+        .update(gameSession)
+        .set({
+          narrationMode: input.mode,
+          ...(input.rate === undefined ? {} : { narrationRate: input.rate }),
+          ...(input.voice === undefined ? {} : { narrationVoice: input.voice }),
+        })
+        .where(eq(gameSession.id, input.sessionId))
+        .run()
+      broadcastToSession(input.sessionId, { type: 'session_updated' })
+    }),
+
+  /**
+   * Read the current line again.
+   *
+   * Nothing is written: the line to read is whatever the board already says,
+   * and the big screen is the one holding the voice. So this is a bare command
+   * down the socket, which also means a screen that was not connected simply
+   * misses it rather than replaying it late on reconnect.
+   */
+  replayNarration: hostProcedure
+    .input(z.object({ sessionId: z.uuid(), fresh: z.boolean().optional() }))
+    .mutation(({ input }) => {
+      broadcastToSession(input.sessionId, { type: 'narration_replay', fresh: input.fresh })
+    }),
+
+  renamePlayer: hostProcedure
     .input(z.object({ playerId: z.uuid(), displayName: displayNameSchema }))
-    .mutation(async ({ ctx, input }) => {
-      const [updated] = await ctx.db
+    .mutation(({ ctx, input }) => {
+      const updated = ctx.db
         .update(sessionPlayer)
         .set({ displayName: input.displayName })
         .where(eq(sessionPlayer.id, input.playerId))
         .returning()
+        .get()
       if (!updated) throw new TRPCError({ code: 'NOT_FOUND' })
-      await broadcastToSession(updated.sessionId, { type: 'session_updated' })
+      broadcastToSession(updated.sessionId, { type: 'session_updated' })
     }),
 
-  assignTeam: protectedProcedure
+  assignTeam: hostProcedure
     .input(z.object({ playerId: z.uuid(), teamId: z.uuid().nullable() }))
-    .mutation(async ({ ctx, input }) => {
-      const [updated] = await ctx.db
+    .mutation(({ ctx, input }) => {
+      const updated = ctx.db
         .update(sessionPlayer)
         .set({ teamId: input.teamId })
         .where(eq(sessionPlayer.id, input.playerId))
         .returning()
+        .get()
       if (!updated) throw new TRPCError({ code: 'NOT_FOUND' })
-      await broadcastToSession(updated.sessionId, { type: 'teams_updated' })
+      broadcastToSession(updated.sessionId, { type: 'teams_updated' })
     }),
 
-  removePlayer: protectedProcedure
-    .input(z.object({ playerId: z.uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const [removed] = await ctx.db
-        .delete(sessionPlayer)
-        .where(eq(sessionPlayer.id, input.playerId))
-        .returning()
-      if (!removed) throw new TRPCError({ code: 'NOT_FOUND' })
-      await broadcastToSession(removed.sessionId, {
-        type: 'player_left',
-        playerId: removed.id,
-      })
-    }),
+  removePlayer: hostProcedure.input(z.object({ playerId: z.uuid() })).mutation(({ ctx, input }) => {
+    const removed = ctx.db
+      .delete(sessionPlayer)
+      .where(eq(sessionPlayer.id, input.playerId))
+      .returning()
+      .get()
+    if (!removed) throw new TRPCError({ code: 'NOT_FOUND' })
+    broadcastToSession(removed.sessionId, { type: 'player_left', playerId: removed.id })
+  }),
 
-  addTeam: protectedProcedure
+  addTeam: hostProcedure
     .input(z.object({ sessionId: z.uuid(), name: z.string().trim().min(1).max(24) }))
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.db.query.team.findMany({
         where: eq(team.sessionId, input.sessionId),
       })
-      const [created] = await ctx.db
+      const created = ctx.db
         .insert(team)
         .values({
           sessionId: input.sessionId,
@@ -194,25 +231,46 @@ export const sessionRouter = createTRPCRouter({
           position: existing.length,
         })
         .returning()
-      await broadcastToSession(input.sessionId, { type: 'teams_updated' })
+        .get()
+      broadcastToSession(input.sessionId, { type: 'teams_updated' })
       return created
     }),
 
-  removeTeam: protectedProcedure
-    .input(z.object({ teamId: z.uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      const [removed] = await ctx.db.delete(team).where(eq(team.id, input.teamId)).returning()
-      if (!removed) throw new TRPCError({ code: 'NOT_FOUND' })
-      await broadcastToSession(removed.sessionId, { type: 'teams_updated' })
-    }),
+  removeTeam: hostProcedure.input(z.object({ teamId: z.uuid() })).mutation(({ ctx, input }) => {
+    const removed = ctx.db.delete(team).where(eq(team.id, input.teamId)).returning().get()
+    if (!removed) throw new TRPCError({ code: 'NOT_FOUND' })
+    broadcastToSession(removed.sessionId, { type: 'teams_updated' })
+  }),
 
-  finish: protectedProcedure
-    .input(z.object({ sessionId: z.uuid() }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .update(gameSession)
-        .set({ status: 'finished', activeMatchId: null })
-        .where(and(eq(gameSession.id, input.sessionId), eq(gameSession.hostUserId, ctx.user.id)))
-      await broadcastToSession(input.sessionId, { type: 'session_updated' })
-    }),
+  /**
+   * Deletes a night and everything under it.
+   *
+   * The cascades do the work — teams, players, buzzer bindings, matches and
+   * their event logs all hang off the session with `on delete cascade`, so this
+   * is one statement rather than a hand-written teardown that would rot the
+   * moment a table was added.
+   *
+   * The room is told first. Once the row is gone `byCode` throws NOT_FOUND, and
+   * a TV still holding the old read would otherwise sit there showing a lobby
+   * for a night that no longer exists.
+   */
+  remove: hostProcedure.input(z.object({ sessionId: z.uuid() })).mutation(({ ctx, input }) => {
+    broadcastToSession(input.sessionId, { type: 'session_updated' })
+    const removed = ctx.db
+      .delete(gameSession)
+      .where(eq(gameSession.id, input.sessionId))
+      .returning()
+      .get()
+    if (!removed) throw new TRPCError({ code: 'NOT_FOUND' })
+    return { code: removed.code, name: removed.name }
+  }),
+
+  finish: hostProcedure.input(z.object({ sessionId: z.uuid() })).mutation(({ ctx, input }) => {
+    ctx.db
+      .update(gameSession)
+      .set({ status: 'finished', activeMatchId: null })
+      .where(eq(gameSession.id, input.sessionId))
+      .run()
+    broadcastToSession(input.sessionId, { type: 'session_updated' })
+  }),
 })

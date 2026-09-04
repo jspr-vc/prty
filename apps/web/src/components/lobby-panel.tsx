@@ -1,5 +1,3 @@
-'use client'
-
 import { useMutation } from '@tanstack/react-query'
 import type { RouterOutputs } from '@workspace/api'
 import { useTRPC } from '@workspace/api/react'

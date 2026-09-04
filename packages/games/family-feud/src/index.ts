@@ -2,7 +2,13 @@ import type { GameDefinition } from '@workspace/common/game'
 import type { FeudAction } from './actions'
 import { feudActionSchema } from './actions'
 import { type FeudPack, feudPackSchema } from './content'
-import { authorizeFeudPlayerAction, createFeudState, reduceFeud } from './reducer'
+import {
+  authorizeFeudPlayerAction,
+  createFeudState,
+  feudNarrationLines,
+  narrateFeud,
+  reduceFeud,
+} from './reducer'
 import { type FeudState, feudStateSchema } from './state'
 
 export const familyFeud: GameDefinition<FeudPack, FeudState, FeudAction> = {
@@ -17,6 +23,10 @@ export const familyFeud: GameDefinition<FeudPack, FeudState, FeudAction> = {
   createState: createFeudState,
   reduce: reduceFeud,
   authorizePlayerAction: (raw, playerId) => authorizeFeudPlayerAction(raw, playerId),
+  narrate: narrateFeud,
+  narrationLines: feudNarrationLines,
+  buzzerAction: (playerId) => ({ type: 'face_off_buzz', playerId }),
+  buzzerResetAction: () => ({ type: 'clear_buzz' }),
 }
 
 export * from './actions'

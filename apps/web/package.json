@@ -4,36 +4,34 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack --port 3000",
-    "build": "next build",
-    "start": "next start --port 3000",
+    "dev": "vite --port 3000",
+    "build": "vite build",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@tanstack/react-router": "catalog:",
     "@workspace/api": "workspace:*",
-    "@workspace/auth": "workspace:*",
     "@workspace/common": "workspace:*",
-    "@workspace/db": "workspace:*",
     "@workspace/game-family-feud": "workspace:*",
     "@workspace/game-jeopardy": "workspace:*",
     "@workspace/games": "workspace:*",
     "@workspace/realtime": "workspace:*",
     "@workspace/ui": "workspace:*",
-    "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-qr-code": "catalog:",
-    "zod": "catalog:"
+    "react-qr-code": "catalog:"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "catalog:",
-    "@types/node": "catalog:",
+    "@tailwindcss/vite": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "@workspace/typescript-config": "workspace:*",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "@types/bun": "catalog:"
   }
 }

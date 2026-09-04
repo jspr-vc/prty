@@ -1,12 +1,10 @@
-'use client'
-
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTRPC } from '@workspace/api/react'
 import { PLAYER_TOKEN_STORAGE_KEY } from '@workspace/common/consts'
-import { useSessionChannel } from '@workspace/realtime/client'
 import { Button } from '@workspace/ui/components/ui/button'
 import { useEffect, useState } from 'react'
 import { PlayerConsole } from '@/components/player-console'
+import { useSessionSync } from '@/hooks/use-session-sync'
 
 function tokenKey(code: string) {
   return `${PLAYER_TOKEN_STORAGE_KEY}.${code}`
@@ -29,8 +27,9 @@ export function JoinForm({ code }: { code: string }) {
     enabled: Boolean(token),
   })
 
-  useSessionChannel(sessionQuery.data?.id, () => {
-    void sessionQuery.refetch()
+  // A rename or a team change lands on `me`, which the session read does not
+  // cover, so it is refetched whenever anything but a match update arrives.
+  const { applyMatch, invalidate } = useSessionSync(code, sessionQuery.data?.id, () => {
     if (token) void meQuery.refetch()
   })
 
@@ -65,9 +64,10 @@ export function JoinForm({ code }: { code: string }) {
           session={session}
           me={me}
           token={token ?? ''}
-          onActed={() => {
-            void sessionQuery.refetch()
-            void meQuery.refetch()
+          // The buzzer's own result comes back with the mutation, so the phone
+          // updates on the round trip it already paid for.
+          onActed={(update) => {
+            if (!applyMatch(update)) invalidate()
           }}
         />
       </Shell>

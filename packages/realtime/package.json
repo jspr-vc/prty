@@ -6,22 +6,18 @@
   "exports": {
     ".": "./src/index.ts",
     "./events": "./src/events.ts",
+    "./protocol": "./src/protocol.ts",
     "./server": "./src/server.ts",
-    "./client": "./src/client.ts",
-    "./env": "./src/env-realtime.ts"
+    "./client": "./src/client.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "catalog:",
-    "@t3-oss/env-nextjs": "catalog:",
-    "@workspace/common": "workspace:*",
-    "server-only": "catalog:",
-    "zod": "catalog:"
+    "@workspace/common": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/bun": "catalog:",
     "@types/react": "catalog:",
     "@workspace/typescript-config": "workspace:*",
     "react": "catalog:",

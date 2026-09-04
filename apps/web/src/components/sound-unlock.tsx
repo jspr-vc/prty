@@ -1,5 +1,3 @@
-'use client'
-
 import { enableSound } from '@workspace/ui/lib/sound'
 import { useEffect } from 'react'
 

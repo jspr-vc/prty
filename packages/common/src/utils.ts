@@ -1,4 +1,4 @@
-import { SESSION_CODE_ALPHABET, SESSION_CODE_LENGTH } from './consts'
+import { HOST_PIN_LENGTH, SESSION_CODE_ALPHABET, SESSION_CODE_LENGTH } from './consts'
 
 function randomFrom(alphabet: string, length: number): string {
   const bytes = crypto.getRandomValues(new Uint8Array(length))
@@ -15,6 +15,11 @@ export function generateSessionCode(length: number = SESSION_CODE_LENGTH): strin
 
 export function generatePlayerToken(): string {
   return crypto.randomUUID()
+}
+
+/** Digits only: the host types this on a phone or a TV remote, not a keyboard. */
+export function generateHostPin(): string {
+  return randomFrom('0123456789', HOST_PIN_LENGTH)
 }
 
 export function slugify(input: string): string {

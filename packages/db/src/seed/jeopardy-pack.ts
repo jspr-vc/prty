@@ -10,8 +10,8 @@ export const devTriviaPack: JeopardyPack = {
           name: 'Version Control',
           clues: [
             {
-              clue: 'This command stages every modified file in the working tree.',
-              answer: 'What is git add -A?',
+              clue: 'The area between the working tree and the repository that git add writes into.',
+              answer: 'What is the index, or staging area?',
               dailyDouble: false,
             },
             {
@@ -30,8 +30,8 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'Linus Torvalds wrote the first version of git in this many days.',
-              answer: 'What is ten?',
+              clue: 'The proprietary system the Linux kernel used until a licence dispute in 2005 pushed Linus to write git.',
+              answer: 'What is BitKeeper?',
               dailyDouble: false,
             },
           ],
@@ -45,7 +45,7 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'You are not who you say you are.',
+              clue: 'We do not know who you are; send credentials.',
               answer: 'What is 401?',
               dailyDouble: false,
             },
@@ -97,12 +97,12 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'A, C, I and D.',
-              answer: 'What is atomicity, consistency, isolation, durability?',
+              clue: 'A transaction is atomic, consistent, isolated and this, the D in ACID.',
+              answer: 'What is durable?',
               dailyDouble: false,
             },
             {
-              clue: 'The index type Postgres uses for full-text search.',
+              clue: 'The Postgres index type whose name expands to Generalized Inverted Index.',
               answer: 'What is GIN?',
               dailyDouble: false,
             },
@@ -122,8 +122,8 @@ export const devTriviaPack: JeopardyPack = {
           name: 'Ops',
           clues: [
             {
-              clue: 'Kubernetes calls its smallest deployable unit this.',
-              answer: 'What is a pod?',
+              clue: 'The container orchestrator whose name is Greek for helmsman.',
+              answer: 'What is Kubernetes?',
               dailyDouble: false,
             },
             {
@@ -131,10 +131,10 @@ export const devTriviaPack: JeopardyPack = {
               answer: 'What is SIGTERM?',
               dailyDouble: false,
             },
-            { clue: 'The default port for HTTPS.', answer: 'What is 443?', dailyDouble: false },
+            { clue: 'The default port for SSH.', answer: 'What is 22?', dailyDouble: false },
             {
-              clue: 'Terraform stores this to track real infrastructure.',
-              answer: 'What is state?',
+              clue: 'The Terraform command that shows what would change without changing anything.',
+              answer: 'What is plan?',
               dailyDouble: true,
             },
             {
@@ -184,13 +184,13 @@ export const devTriviaPack: JeopardyPack = {
           name: 'The Web',
           clues: [
             {
-              clue: 'The header that makes a browser refuse a cross-origin read.',
+              clue: 'The mechanism by which an Access-Control-Allow-Origin header lets a page read a cross-origin response.',
               answer: 'What is CORS?',
               dailyDouble: false,
             },
             {
-              clue: 'Three-letter acronym for the document object model.',
-              answer: 'What is DOM?',
+              clue: 'The tree a browser builds from HTML, and the one JavaScript edits to change the page.',
+              answer: 'What is the DOM?',
               dailyDouble: false,
             },
             {
@@ -243,7 +243,7 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The date 32-bit Unix time overflows.',
+              clue: 'The year 32-bit Unix time overflows.',
               answer: 'What is 2038?',
               dailyDouble: false,
             },
@@ -263,7 +263,7 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'Emacs users bind this key more than any other.',
+              clue: "The modifier key whose overuse in Emacs is blamed for 'Emacs pinky'.",
               answer: 'What is Control?',
               dailyDouble: false,
             },
@@ -273,8 +273,8 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The 1976 editor that vi was built on top of.',
-              answer: 'What is ed?',
+              clue: 'The 1976 line editor that vi began life as the visual mode of.',
+              answer: 'What is ex?',
               dailyDouble: false,
             },
             {

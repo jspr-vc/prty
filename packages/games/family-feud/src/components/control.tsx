@@ -1,11 +1,15 @@
 'use client'
 
 import type { MatchContext } from '@workspace/common/game'
+import { ScoreEditor } from '@workspace/ui/components/score-editor'
 import { Button } from '@workspace/ui/components/ui/button'
 import { cn } from '@workspace/ui/lib/utils'
 import type { FeudAction } from '../actions'
 import { type FeudPack, MAX_STRIKES } from '../content'
 import type { FeudState } from '../state'
+
+/** Survey answers are worth single or low double digits, so nudge in fives. */
+const SCORE_STEP = 5
 
 interface Props {
   pack: FeudPack
@@ -55,21 +59,124 @@ export function FeudControl({ pack, state, ctx, onAction, pending }: Props) {
           {round.answers.map((answer, index) => {
             const shown = state.revealed.includes(index)
             return (
-              <Button
-                key={answer.text}
-                variant={shown ? 'secondary' : 'outline'}
-                className="w-full justify-between"
-                disabled={shown}
-                onClick={() => onAction({ type: 'reveal', answerIndex: index })}
-              >
-                <span className="truncate">
-                  {index + 1}. {answer.text}
-                </span>
-                <span className="tabular-nums">{answer.points}</span>
-              </Button>
+              <div key={answer.text} className="flex items-center gap-2">
+                <Button
+                  variant={shown ? 'secondary' : 'outline'}
+                  className="w-full flex-1 justify-between"
+                  disabled={shown}
+                  onClick={() => onAction({ type: 'reveal', answerIndex: index })}
+                >
+                  <span className="truncate">
+                    {index + 1}. {answer.text}
+                  </span>
+                  <span className="tabular-nums">{answer.points}</span>
+                </Button>
+                {shown && (
+                  // Deliberately a separate control rather than making the row a
+                  // toggle: the reveal button is hit fast and often, and a host
+                  // double-tapping one would otherwise take their own answer back.
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    aria-label={`Hide ${answer.text} again`}
+                    title="Turn this answer back over"
+                    onClick={() => onAction({ type: 'hide', answerIndex: index })}
+                  >
+                    Hide
+                  </Button>
+                )}
+              </div>
             )
           })}
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <Header>Face-off</Header>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={state.phase !== 'face_off'}
+            onClick={() => onAction({ type: 'strike' })}
+          >
+            X · not up there
+          </Button>
+          <Button
+            size="sm"
+            variant={state.buzzerArmed ? 'outline' : 'default'}
+            disabled={state.phase !== 'face_off'}
+            onClick={() => onAction({ type: 'set_buzzers_armed', armed: !state.buzzerArmed })}
+          >
+            {state.buzzerArmed ? 'Lock buzzers' : 'Arm buzzers'}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => onAction({ type: 'clear_buzz' })}>
+            {state.phase === 'face_off' ? 'New face-off' : 'Clear buzz'}
+          </Button>
+        </div>
+
+        {state.phase === 'face_off' && state.faceOffMisses > 0 && (
+          <div className="rounded-md border border-amber-400 bg-amber-50 p-2 text-sm dark:bg-amber-950/40">
+            {state.faceOffMisses === 1 ? (
+              <>
+                One X, and no strike spent. The other contestant answers next. Buzzers are locked,
+                so the one who missed cannot take it back.
+              </>
+            ) : (
+              <>
+                {state.faceOffMisses} X's and nobody on the board. Start a new face-off, or give a
+                team control below and play the round out.
+              </>
+            )}
+          </div>
+        )}
+
+        {/*
+         * The same button a pad presses, for the nights there are no pads — or
+         * when one of them stops answering halfway through a round. The reducer
+         * cannot tell the two apart, so a host calling the face-off by eye
+         * lands on exactly the state a press would have produced.
+         */}
+        {ctx.players.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            Nobody has joined yet. Players can buzz from their phones, or you can buzz for them here
+            once they are in.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {ctx.players.map((player) => {
+              const team = ctx.teams.find((candidate) => candidate.id === player.teamId)
+              return (
+                <div key={player.id} className="flex items-center gap-2 rounded-md border p-2">
+                  {team && (
+                    <span
+                      className="size-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: team.color }}
+                    />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-sm">
+                    {player.displayName}
+                    {team && <span className="text-muted-foreground"> · {team.name}</span>}
+                  </span>
+                  <Button
+                    size="sm"
+                    aria-label={`Buzz in ${player.displayName}`}
+                    variant={state.buzzedPlayerId === player.id ? 'default' : 'outline'}
+                    disabled={
+                      state.phase !== 'face_off' ||
+                      !state.buzzerArmed ||
+                      Boolean(state.buzzedPlayerId)
+                    }
+                    onClick={() => onAction({ type: 'face_off_buzz', playerId: player.id })}
+                  >
+                    Buzz
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       <section className="space-y-3">
@@ -94,7 +201,12 @@ export function FeudControl({ pack, state, ctx, onAction, pending }: Props) {
           <Button
             size="sm"
             variant="destructive"
-            disabled={state.strikes >= MAX_STRIKES && state.phase !== 'steal'}
+            // The face-off has its own X above, and it is not one of these
+            // three: the strike count belongs to whoever ends up with the board.
+            disabled={
+              state.phase === 'face_off' ||
+              (state.strikes >= MAX_STRIKES && state.phase !== 'steal')
+            }
             onClick={() => onAction({ type: 'strike' })}
           >
             Strike
@@ -119,9 +231,6 @@ export function FeudControl({ pack, state, ctx, onAction, pending }: Props) {
               style={{ backgroundColor: team.color }}
             />
             <span className="flex-1 truncate text-sm">{team.name}</span>
-            <span className="w-16 text-right font-medium text-sm tabular-nums">
-              {state.scores[team.id] ?? 0}
-            </span>
             <Button
               size="sm"
               variant={state.controlTeamId === team.id ? 'default' : 'outline'}
@@ -143,6 +252,13 @@ export function FeudControl({ pack, state, ctx, onAction, pending }: Props) {
             >
               Award pot
             </Button>
+            <ScoreEditor
+              subject={team.name}
+              value={state.scores[team.id] ?? 0}
+              step={SCORE_STEP}
+              onAdjust={(delta) => onAction({ type: 'adjust_score', teamId: team.id, delta })}
+              onSet={(value) => onAction({ type: 'set_score', teamId: team.id, value })}
+            />
           </div>
         ))}
       </section>

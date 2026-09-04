@@ -3,6 +3,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTRPCClient, httpBatchStreamLink } from '@trpc/client'
 import { createTRPCContext } from '@trpc/tanstack-react-query'
+import { HOST_PIN_HEADER, HOST_PIN_STORAGE_KEY } from '@workspace/common/consts'
 import { useState } from 'react'
 import superjson from 'superjson'
 import { TRPC_ENDPOINT } from './config'
@@ -19,10 +20,23 @@ function getQueryClient() {
   return browserQueryClient
 }
 
-function getBaseUrl() {
-  if (typeof window !== 'undefined') return window.location.origin
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
-  return `http://localhost:${process.env.PORT ?? 3000}`
+export function readHostPin(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.localStorage.getItem(HOST_PIN_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function writeHostPin(pin: string | null): void {
+  if (typeof window === 'undefined') return
+  try {
+    if (pin) window.localStorage.setItem(HOST_PIN_STORAGE_KEY, pin)
+    else window.localStorage.removeItem(HOST_PIN_STORAGE_KEY)
+  } catch {
+    // A browser with storage disabled can still watch; it just cannot host.
+  }
 }
 
 export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
@@ -31,8 +45,14 @@ export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
     createTRPCClient<AppRouter>({
       links: [
         httpBatchStreamLink({
-          url: `${getBaseUrl()}${TRPC_ENDPOINT}`,
+          url: TRPC_ENDPOINT,
           transformer: superjson,
+          // Read per request, not once at construction: the console pairs after
+          // the provider is already mounted, and should not need a reload.
+          headers() {
+            const pin = readHostPin()
+            return pin ? { [HOST_PIN_HEADER]: pin } : {}
+          },
         }),
       ],
     }),

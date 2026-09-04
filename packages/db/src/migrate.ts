@@ -1,43 +1,52 @@
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { drizzle } from 'drizzle-orm/postgres-js'
-import { migrate } from 'drizzle-orm/postgres-js/migrator'
-import postgres from 'postgres'
-import '../load-env'
+import type { Database } from 'bun:sqlite'
+import { migrations } from './migrations.generated'
 
 /**
- * Runs the same migrations `drizzle-kit migrate` does, but reports what went
- * wrong. The CLI exits 1 with the spinner still on the line and no message,
- * which is impossible to act on from a CI log.
+ * Applies whatever has not been applied yet, in journal order.
+ *
+ * Deliberately not drizzle's own migrator: that one reads the `drizzle/` folder
+ * off disk, and inside a compiled binary there is no folder. The bookkeeping is
+ * one table and a tag comparison, which is little enough to own.
  */
-async function main() {
-  const url = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL
-  if (!url) {
-    throw new Error(
-      'No database URL. Locally, set DIRECT_DATABASE_URL or DATABASE_URL. In CI, ' +
-        'add DIRECT_DATABASE_URL (the session-pooler string) as a repository secret.',
+export function migrateToLatest(sqlite: Database): string[] {
+  sqlite.run(`
+    create table if not exists __migrations (
+      tag text primary key,
+      applied_at integer not null
     )
-  }
+  `)
 
-  const folder = join(dirname(fileURLToPath(import.meta.url)), '..', 'drizzle')
-  // Migrations are DDL in one session: never the transaction pooler, and never
-  // prepared statements in case the URL points at one anyway.
-  const sql = postgres(url, { max: 1, prepare: false })
+  const applied = new Set(
+    (sqlite.query('select tag from __migrations').all() as { tag: string }[]).map((row) => row.tag),
+  )
 
-  try {
-    console.log(`applying migrations from ${folder}`)
-    await migrate(drizzle(sql), { migrationsFolder: folder })
-    console.log('migrations applied')
-  } finally {
-    await sql.end()
-  }
+  const pending = migrations.filter((migration) => !applied.has(migration.tag))
+  if (pending.length === 0) return []
+
+  // One transaction for the whole run: a half-applied schema is the one state
+  // there is no sensible way to recover from on someone's laptop.
+  const apply = sqlite.transaction(() => {
+    for (const migration of pending) {
+      for (const statement of migration.statements) sqlite.run(statement)
+      sqlite
+        .query('insert into __migrations (tag, applied_at) values (?, ?)')
+        .run(migration.tag, Date.now())
+    }
+  })
+  apply()
+
+  return pending.map((migration) => migration.tag)
 }
 
-main().catch((error: unknown) => {
-  const e = error as { message?: string; cause?: unknown; code?: string; detail?: string }
-  console.error('migration failed:', e.message ?? error)
-  if (e.code) console.error('  code  :', e.code)
-  if (e.detail) console.error('  detail:', e.detail)
-  if (e.cause) console.error('  cause :', e.cause)
-  process.exit(1)
-})
+export function migrationStatus(sqlite: Database): { tag: string; applied: boolean }[] {
+  sqlite.run(
+    'create table if not exists __migrations (tag text primary key, applied_at integer not null)',
+  )
+  const applied = new Set(
+    (sqlite.query('select tag from __migrations').all() as { tag: string }[]).map((row) => row.tag),
+  )
+  return migrations.map((migration) => ({
+    tag: migration.tag,
+    applied: applied.has(migration.tag),
+  }))
+}

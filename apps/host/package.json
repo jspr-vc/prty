@@ -1,0 +1,29 @@
+{
+  "name": "@workspace/host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && GAMESHOWS_PORT=3001 bun run --hot src/index.ts",
+    "start": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run src/index.ts",
+    "build": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts",
+    "build:binary": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun build --compile --minify --sourcemap src/index.ts --outfile ../../bin/gameshows",
+    "narrate": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run src/index.ts narrate",
+    "voices": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run src/index.ts voices",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@workspace/api": "workspace:*",
+    "@workspace/common": "workspace:*",
+    "@workspace/db": "workspace:*",
+    "@workspace/games": "workspace:*",
+    "@workspace/realtime": "workspace:*",
+    "text2wav": "^0.0.14"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@workspace/typescript-config": "workspace:*",
+    "@workspace/web": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

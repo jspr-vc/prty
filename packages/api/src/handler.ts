@@ -10,7 +10,7 @@ export function trpcHandler(req: Request): Promise<Response> {
     router: appRouter,
     createContext: () => createTRPCContext({ headers: req.headers }),
     onError({ error, path }) {
-      if (process.env.NODE_ENV !== 'production') {
+      if (error.code === 'INTERNAL_SERVER_ERROR') {
         console.error(`tRPC error on ${path ?? '<no-path>'}:`, error)
       }
     },

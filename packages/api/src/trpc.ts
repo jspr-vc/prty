@@ -21,16 +21,10 @@ export const createCallerFactory = t.createCallerFactory
 
 export const publicProcedure = t.procedure
 
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session || !ctx.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' })
-  }
-  return next({ ctx: { ...ctx, session: ctx.session, user: ctx.user } })
-})
-
-export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== 'admin') {
-    throw new TRPCError({ code: 'FORBIDDEN' })
+/** Everything that drives the show. Guarded by the PIN the binary printed. */
+export const hostProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.isHost) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Host PIN required' })
   }
   return next({ ctx })
 })

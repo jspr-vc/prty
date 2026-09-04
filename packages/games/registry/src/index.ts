@@ -1,5 +1,5 @@
 import type { GameSlug } from '@workspace/common/consts'
-import type { AnyGameDefinition, MatchContext } from '@workspace/common/game'
+import type { AnyGameDefinition, MatchContext, NarrationLine } from '@workspace/common/game'
 import { familyFeud } from '@workspace/game-family-feud'
 import { jeopardy } from '@workspace/game-jeopardy'
 
@@ -52,6 +52,60 @@ export function applyPlayerAction(
   if (!action) return null
   const next = definition.reduce(pack, state, action, ctx)
   return { state: next, changed: next !== state, action }
+}
+
+/**
+ * A press on a physical pad, already resolved to the player it belongs to.
+ *
+ * The game decides what a pad means, so a game with no buzzers simply does not
+ * implement `buzzerAction` and every press is a no-op rather than an error.
+ */
+export function applyBuzzerAction(
+  definition: AnyGameDefinition,
+  rawPack: unknown,
+  rawState: unknown,
+  playerId: string,
+  ctx: MatchContext,
+): AppliedAction | null {
+  if (!definition.buzzerAction) return null
+  const pack = definition.packSchema.parse(rawPack)
+  const state = definition.stateSchema.parse(rawState)
+  const action = definition.buzzerAction(playerId, state, ctx)
+  if (!action) return null
+  const next = definition.reduce(pack, state, action, ctx)
+  return { state: next, changed: next !== state, action }
+}
+
+/** The reset pad, and the console button that does the same thing. */
+export function applyBuzzerReset(
+  definition: AnyGameDefinition,
+  rawPack: unknown,
+  rawState: unknown,
+  ctx: MatchContext,
+): AppliedAction | null {
+  if (!definition.buzzerResetAction) return null
+  const pack = definition.packSchema.parse(rawPack)
+  const state = definition.stateSchema.parse(rawState)
+  const action = definition.buzzerResetAction(state, ctx)
+  if (!action) return null
+  const next = definition.reduce(pack, state, action, ctx)
+  return { state: next, changed: next !== state, action }
+}
+
+/** What the big screen should be reading right now, per the game itself. */
+export function narrateMatch(
+  definition: AnyGameDefinition,
+  rawPack: unknown,
+  rawState: unknown,
+  ctx: MatchContext,
+): NarrationLine | null {
+  if (!definition.narrate) return null
+  const parsedPack = definition.packSchema.safeParse(rawPack)
+  const parsedState = definition.stateSchema.safeParse(rawState)
+  // Narration is decoration. A state this build cannot parse should leave the
+  // room quiet, never take the big screen down.
+  if (!parsedPack.success || !parsedState.success) return null
+  return definition.narrate(parsedPack.data, parsedState.data, ctx)
 }
 
 export function createInitialState(

@@ -1,13 +1,11 @@
-'use client'
-
 import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { useTRPC } from '@workspace/api/react'
 import { Button } from '@workspace/ui/components/ui/button'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export function CreateSessionForm() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const trpc = useTRPC()
   const [name, setName] = useState('')
   const [teams, setTeams] = useState('')
@@ -15,7 +13,7 @@ export function CreateSessionForm() {
   const create = useMutation(
     trpc.session.create.mutationOptions({
       onSuccess: (created) => {
-        if (created) router.push(`/host/${created.code}`)
+        if (created) void navigate({ to: '/host/$code', params: { code: created.code } })
       },
     }),
   )

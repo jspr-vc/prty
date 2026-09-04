@@ -1,5 +1,3 @@
-'use client'
-
 import type { MatchContext } from '@workspace/common/game'
 import { FeudControl } from '@workspace/game-family-feud/control'
 import { FeudDisplay } from '@workspace/game-family-feud/display'
