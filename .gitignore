@@ -1,21 +1,23 @@
 node_modules
 .turbo
-.next
 dist
-out
-build
-
-.env
-.env.*
-!.env.example
-
-*.log
-npm-debug.log*
-.DS_Store
-coverage
+bin
 *.tsbuildinfo
-supabase/.branches
-supabase/.temp
-supabase/logs
+
+# Generated from the client build: the filenames carry content hashes, so this
+# changes on every build and belongs to the build, not to the repo. tsc reads
+# `assets.generated.d.ts` instead, which is committed.
+apps/host/src/assets.generated.js
+
+# espeak-ng's Emscripten glue, copied out of the `text2wav` package with its
+# filesystem mount patched out. It belongs to the installed dependency rather
+# than to the repo, and `espeak.generated.d.ts` is what tsc reads.
+apps/host/src/espeak.generated.js
+
+# The show itself.
+*.db
+*.db-wal
+*.db-shm
+
+# Playwright MCP session logs.
 .playwright-mcp
-.vercel

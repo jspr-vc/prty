@@ -1,177 +1,293 @@
 # Gameshows
 
-Turborepo + bun monorepo for hosting gameshow nights: a big-screen display, a host
-console, and one package per game.
-
-## The three surfaces
-
-| Surface           | Where                            | Who touches it                                |
-| ----------------- | -------------------------------- | --------------------------------------------- |
-| **Big screen**    | `apps/web` at `/` and `/s/:code` | Nobody. It only renders server state.         |
-| **Host console**  | `apps/web` at `/host`            | You. Every control lives here.                |
-| **Player phones** | `apps/web` at `/join/:code`      | Players, via the QR code on the big screen. |
-
-Phones are not just a sign-up form: once a match is running they become buzzers.
-In Jeopardy a player buzzes in and enters their own daily-double wager; in Family
-Feud they race for the face-off. The host still judges everything.
-
-All three are one Next.js app, split into route groups with their own layouts.
-The join page sits alongside the TV rather than the console so that the QR code
-is a same-origin path.
-
-### Flow
-
-1. Sign in on the console and create a night (a **session**), e.g. "Dev Friends Night".
-   You get a four-character code.
-2. Open the big screen and enter that code. It shows a QR code pointing at
-   `/join/<code>` on the same host.
-3. Everyone scans and registers their own name and team. The TV lobby fills in live.
-4. Pick a game and a question pack on the console. The TV switches to the game board.
-5. Every control is on the console; the TV and every phone follow over Supabase Realtime.
-
-A session outlives a single game, so one night can run Jeopardy and then Family Feud
-with the same people and the same team assignments. Hosting a second night for a
-different group is just a second session.
-
-## Layout
-
-| Path                          | What                                                          |
-| ----------------------------- | ------------------------------------------------------------- |
-| `apps/web`                    | All three surfaces, as route groups with their own layouts    |
-| `packages/api`                | tRPC router, context, handler, react/server glue              |
-| `packages/auth`               | better-auth (organization + admin plugins), access control    |
-| `packages/db`                 | drizzle-orm + postgres-js, Upstash redis client, schema, seed |
-| `packages/realtime`           | Supabase Realtime broadcast (server) + subscribe hook (client)|
-| `packages/ui`                 | shadcn/ui (new-york, neutral), tailwind v4, shared `globals.css` |
-| `packages/common`             | consts, zod schemas, utils, the `GameDefinition` contract     |
-| `packages/games/*`            | one package per game — see `packages/games/README.md`         |
-| `packages/typescript-config`  | shared tsconfig bases                                         |
-
-## Getting started
+A gameshow night in one binary. The host runs it on a laptop, everyone else opens
+a page on the same WiFi: a big screen on the TV, a buzzer on every phone, and a
+host console that drives the whole thing.
 
 ```bash
-cp .env.example .env
+./gameshows
+```
+
+```
+────────────────────────────────────────────────────
+  Gameshows is live
+────────────────────────────────────────────────────
+  Big screen   http://localhost:3000
+               http://192.168.1.6:3000  (wifi)
+  Host console http://localhost:3000/host
+
+  Open the big screen on one of the LAN addresses above, not
+  localhost — the QR code is built from whatever address you use.
+
+  Host PIN     418302
+
+  Database     ~/.gameshows/gameshows.db
+  Narration    espeak-ng (server fallback ready)
+────────────────────────────────────────────────────
+```
+
+No install, no database to provision, no internet. The binary carries the client,
+the server, the schema and the question packs; it creates its SQLite file on
+first run and seeds itself.
+
+## Running it
+
+You need [Bun](https://bun.sh) 1.4 or newer. Nothing else: no Node, no database
+server, no accounts.
+
+```bash
+git clone git@github.com:jspr-vc/prty.git gameshows
+cd gameshows
 bun install
-bun run infra:up      # supabase (postgres + realtime + studio) and redis
-bun run db:migrate
-bun run db:seed       # registers Jeopardy and Family Feud with a starter pack each
+```
+
+### The binary
+
+This is how a night is meant to run. Build it once and copy it to whichever
+laptop sits next to the TV.
+
+```bash
+bun run build:binary   # → bin/gameshows
+./bin/gameshows
+```
+
+The banner prints the addresses the room can reach it on and the host PIN. The
+host console is at `/host`; the big screen is the root URL. Open the big screen
+on a **LAN address**, not `localhost`, because the QR code on it is built from
+whatever address the TV was opened on.
+
+### From source
+
+Same thing without compiling, straight from the checkout. This does a full client
+build first, so it takes a moment to come up.
+
+```bash
+bun run build
+bun run start
+```
+
+### While developing
+
+```bash
 bun run dev
 ```
 
-- Big screen: http://localhost:3000
-- Host console: http://localhost:3000/host
-- Supabase Studio: http://127.0.0.1:54333
+Vite serves the client on **3000** with hot reload and proxies `/api` and `/ws`
+to the host server on **3001**, which restarts on change. Both listen on the LAN,
+so real phones work here too.
 
-Ports are shifted off the Supabase defaults (API 54331, db 54332, studio 54333,
-redis 6380, redis-http 8089) so this stack can run beside other local projects.
+### Flags and environment
 
-**To play on real phones**, open the big screen at your machine's LAN address
-(e.g. `http://192.168.1.6:3000`) rather than `localhost`. The QR code is built
-from whatever origin the TV is being viewed on, so it will resolve off-device
-without any configuration.
+| Flag           | Env              | |
+| -------------- | ---------------- | --- |
+| `--port`, `-p` | `GAMESHOWS_PORT` | Port to listen on. Default 3000 |
+| `--pin`        | `GAMESHOWS_PIN`  | Force the host PIN instead of keeping the stored one |
+|                | `GAMESHOWS_DB`   | Where the SQLite file lives. Default `~/.gameshows/gameshows.db` |
+|                | `GAMESHOWS_VOICES` | Extra directory to search for piper voices |
+|                | `GAMESHOWS_PIPER_BIN` | Path to a piper executable not on `PATH` |
+| `--help`, `-h` |                  | |
 
-## Deployment
+The file is created, migrated and seeded on first start. Delete it to reset
+everything, including the host PIN.
 
-One Vercel project, `gameshows-gameclient`, root directory `apps/web`, one
-domain — **https://prty.jspr.vc**. Every surface is a path on it:
+Two more subcommands, `gameshows voices` and `gameshows narrate`, are covered
+under [Narration](#narration).
 
-| Path                 | Surface                                        |
-| -------------------- | ---------------------------------------------- |
-| `/`, `/s/:code`      | The big screen                                 |
-| `/join/:code`        | Player phones, reached by scanning the TV's QR |
-| `/host`, `/host/:code` | The host console                             |
-| `/sign-in`           | Host sign-in                                   |
+## The three surfaces
 
-Everything is same-origin, which is what keeps the configuration this small:
-the QR code is a relative path, the console links to the TV with a relative
-path, and there is not a single URL of our own in the environment.
+| Surface           | Where           | Who touches it                              |
+| ----------------- | --------------- | ------------------------------------------- |
+| **Big screen**    | `/`, `/s/:code` | Nobody. It only renders server state.       |
+| **Host console**  | `/host`         | You. Every control lives here.              |
+| **Player phones** | `/join/:code`   | Players, via the QR code on the big screen. |
 
-### DNS
+All three are one React app served by one Bun process, split by route.
 
-`jspr.vc` runs on external nameservers (Namecheap):
+### Flow
 
-| Type    | Host   | Value                                  |
-| ------- | ------ | -------------------------------------- |
-| `CNAME` | `prty` | `88129cb626c6bcea.vercel-dns-017.com.` |
+1. Run the binary. It prints a host PIN and the addresses the room can reach it on.
+2. Open `/host` on your machine and enter the PIN once. That browser is now the host.
+3. Create a night (a **session**) and you get a four-character code.
+4. Open the big screen on a **LAN address** and enter that code. It shows a QR
+   code pointing at `/join/<code>` on the same host.
+5. Everyone scans and registers. The TV lobby fills in live.
+6. Pick a game and a pack. The TV switches to the board; every control is on the
+   console and every screen follows over one WebSocket.
 
-### Environment variables
+A session outlives a single game, so one night can run Jeopardy and then Family
+Feud with the same people and the same teams.
 
-One project now, so one set of variables. Nothing in `.env.example` works in
-production — those all point at local containers.
+## Buzzers
 
-| Variable                        | Required | Where it comes from                                          |
-| ------------------------------- | :------: | ------------------------------------------------------------ |
-| `DATABASE_URL`                  | yes      | Supabase → Connect → **Transaction pooler** (port 6543)       |
-| `NEXT_PUBLIC_SUPABASE_URL`      | yes      | Supabase → Settings → API → Project URL                       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes      | Supabase → Settings → API → anon key                          |
-| `SUPABASE_SERVICE_ROLE_KEY`     | yes      | Supabase → Settings → API → service_role key                  |
-| `BETTER_AUTH_SECRET`            | yes      | Generate one: `openssl rand -base64 32`                       |
-| `BETTER_AUTH_URL`               | yes      | `https://prty.jspr.vc`                                        |
-| `UPSTASH_REDIS_REST_URL`        | no       | Upstash → your database → REST API                            |
-| `UPSTASH_REDIS_REST_TOKEN`      | no       | Upstash → your database → REST API                            |
+Phones are buzzers out of the box. A **physical buzzer set** works too: the
+hardware presents itself as a keyboard where each pad sends a function key from
+**F13** up, and **F24** is reset.
 
-There is not one URL of our own in that list, and no `NEXT_PUBLIC_*` values
-either. Everything is same-origin and resolved from the request, so changing the
-domain needs no rebuild and cannot leave the QR code pointing somewhere stale.
+Plug the box into whichever machine drives the TV or the host console — both
+listen. In the console's **Buzzers** panel, pick a player or a team, then press
+their pad; whatever key it sent becomes theirs. A pad bound to a team buzzes as
+that team's earliest joiner, which is the face-off representative you want in
+Family Feud.
 
-#### Redis is optional
+### Nobody can steal a buzz
 
-Leave the two `UPSTASH_*` variables unset and the app runs without redis. Postgres
-is always the source of truth: sessions are stored there regardless, and
-better-auth falls back to the `verification` table for the records it would
-otherwise keep in secondary storage. You lose a session-lookup cache, nothing else.
+The first press latches the room. Both reducers carry an explicit `buzzerArmed`
+flag, and a buzz that arrives while it is false is rejected rather than queued —
+so a pad landing a millisecond later cannot overwrite the winner.
 
-For query caching there is a small in-process `Map` (`packages/db/src/cache.ts`)
-wired into drizzle in **explicit** mode — a query is cached only if it asks, with
-`.$withCache()`. Today that is just the game registry and the question packs,
-which change when you run the seed and effectively never otherwise. Nothing about
-a live session is cached, on purpose: a stale board is worse than a slow one.
+Only four things re-arm it:
 
-Note that this cache is per-process. On serverless each instance keeps its own,
-and a mutation only clears the instance that made it, so do not extend it to rows
-a host edits mid-show. It is also why the TTL is only a minute: `db:seed` runs in
-its own process and cannot clear a running server's cache, so newly seeded packs
-would otherwise take five minutes to appear. Restart the app after seeding if you
-do not want to wait.
+- a new question,
+- a wrong answer that reopens the clue (the steal),
+- the **F24** reset pad,
+- the host's **Re-arm** button, which is the same signal over the WebSocket.
 
-#### Which connection string
+Every write to a match is serialised through one queue in one process, so "who
+got there first" is decided by arrival order and nothing else. There is no
+read-modify-write window for two presses to race through.
 
-Supabase offers three, and they are not interchangeable:
+## Narration
 
-| String                | Port | Use it for                                              |
-| --------------------- | ---- | ------------------------------------------------------- |
-| **Transaction pooler**| 6543 | `DATABASE_URL` on Vercel — this is the one the app wants |
-| **Session pooler**    | 5432 | `DIRECT_DATABASE_URL`, for migrations and seeds          |
-| **Direct**            | 5432 | Same as session pooler, but IPv6-only on the free tier   |
+The big screen can read the board out loud — questions only, or questions and
+answers, set per night from the console.
 
-The app runs on serverless functions that come and go, so it needs the
-transaction pooler: it hands back the connection after every transaction instead
-of holding one per instance. The catch is that a pooled connection is a different
-backend each time, so prepared statements cannot survive between queries.
-`packages/db/src/client.ts` detects port 6543 and turns them off, along with
-capping the client pool at one connection.
+It speaks with the TV browser's own `speechSynthesis` voices when it has any, and
+falls back to a speech engine on the server when it does not. That fallback is
+not a rare path: on Linux, browsers get their voices from speech-dispatcher, and
+plenty of machines have none installed at all.
 
-Migrations are the opposite: `drizzle-kit` runs DDL and wants a session it can
-hold, which the transaction pooler will not give it. Set `DIRECT_DATABASE_URL`
-to the session pooler string and drizzle-kit uses it automatically. Direct
-connections work too, but Supabase serves them over IPv6 only unless you pay for
-the IPv4 add-on, and Vercel's build machines cannot reach them.
+Engines are picked in quality order — **piper**, then macOS `say`, then
+`espeak-ng`, then `espeak`. Rendered clips are cached in the database keyed by
+engine, voice, rate and text, so a clue is synthesised once and replayed for the
+life of the file. Pack content never changes, which is what makes even a slow
+engine perfectly usable here.
 
-`DIRECT_DATABASE_URL` is optional and only needed where migrations run — your
-machine, or CI. It falls back to `DATABASE_URL`, which is what local development
-uses since there is only one connection string there.
+Nothing is required: with no engine and no browser voices, narration is silent
+and the console says so rather than failing quietly.
 
-### After the variables are set
+### Good narration, offline, for free
 
-Run the migration and seed once from your machine, against the **session pooler**
-string rather than the transaction one:
+[Piper](https://github.com/OHF-Voice/piper1-gpl) is a neural TTS that runs on CPU
+and sounds like a person rather than a 1985 speech synthesiser. Install it, drop
+one or more voice models into the voices directory, and restart:
 
 ```bash
-DIRECT_DATABASE_URL='<session pooler url>' bun run db:migrate
-DIRECT_DATABASE_URL='<session pooler url>' bun run db:seed
+mkdir -p ~/.gameshows/voices
+# Grab a voice (.onnx and its .onnx.json) from rhasspy/piper-voices on HuggingFace,
+# e.g. en_US-lessac-medium, and put both files in that directory.
 ```
 
-Redeploy both projects so the new variables are baked into the client bundles —
-`NEXT_PUBLIC_*` values are inlined at build time, so changing them requires a
-rebuild, not just a restart.
+Every `.onnx` found becomes a selectable voice, named after its filename. The
+search covers `~/.gameshows/voices`, `/usr/share/piper-voices` and
+`/usr/local/share/piper-voices` (so distribution-packaged voices are picked up
+without copying anything), descending into subdirectories because packaged
+voices are filed by language and quality. `GAMESHOWS_VOICES` adds a directory
+that wins over all of them; `GAMESHOWS_PIPER_MODEL` pins a single file.
 
+```bash
+gameshows voices     # what this machine can speak with, and where it looked
+```
+
+If you have a GPU and an ONNX runtime that can use it, `GAMESHOWS_PIPER_CUDA=1`
+adds `--cuda` — though for pre-rendering, CPU is already fast enough.
+
+Piper only counts as available when it has a model to work with, so installing
+the binary alone will not silently replace working espeak narration with silence.
+
+### Render the packs before the night
+
+```bash
+gameshows narrate --voice en_US-lessac-medium --rate 95
+```
+
+This walks every pack, renders every line it could ever produce, and stores the
+audio in the database. A neural voice takes a moment per line — fine at a desk,
+not fine with a room waiting for the next clue — and pack content never changes,
+so the work is only ever done once.
+
+| Flag | |
+| --- | --- |
+| `--pack <slug>` | Just one pack, instead of all of them |
+| `--voice <name>` | As listed by `gameshows voices` |
+| `--rate <n>` | Speaking speed, percent. Default 95 |
+| `--mode clues` | Questions only. Default is `everything`, which adds answers |
+
+**Set the same voice and speed on the night.** Clips are cached against engine,
+voice, rate and text, so a session at a different speed asks for clips that were
+never rendered and falls back to synthesising them live, mid-show.
+
+Re-running is cheap: anything already rendered is skipped, and the summary says
+how many were reused. `#` in the progress line is a render, `·` is a cache hit,
+`!` is a line the engine refused.
+
+## Playing over WiFi
+
+This is the intended setup — phones have no other option — but a few things about
+consumer networks are worth knowing before the room is full of people.
+
+- **Open the big screen on a LAN address, not `localhost`.** The QR code is built
+  from whatever address the TV is being viewed on, so `localhost` hands every
+  phone a URL only the host machine can resolve. This is the most common way a
+  night fails to start.
+- **Guest networks usually will not work.** "AP isolation" / "client isolation" is
+  on by default on most guest SSIDs and blocks device-to-device traffic entirely,
+  so phones cannot reach the host at all. Use the main network.
+- **Everyone on one SSID and one subnet.** A mesh extender or a separate guest
+  network can put phones on a different subnet from the host.
+- **Check the host machine's firewall** if the host can load the page but phones
+  cannot.
+- **Phones sleeping is fine.** The socket reconnects on wake and re-reads the
+  session, so a phone that locked mid-round catches up rather than going stale.
+- **For close calls, prefer the hardware pads.** The server breaks ties by arrival
+  order, and a phone's press crosses WiFi first — tens of milliseconds of jitter
+  under load. A pad wired into the TV or the host machine skips that hop.
+
+## Development
+
+```bash
+bun run dev            # client on 3000, host server on 3001, both hot
+bun run build          # client bundle, then embed its assets into the server
+bun run build:binary   # → bin/gameshows, a single self-contained executable
+bun run typecheck
+bun run lint
+```
+
+CI runs lint, typecheck and a binary build, then boots the binary and checks it
+serves. The same commands run locally, so a green `bun run lint && bun run
+typecheck && bun run build:binary` is what a PR needs.
+
+### Layout
+
+| Path                         | What                                                          |
+| ---------------------------- | ------------------------------------------------------------- |
+| `apps/host`                  | The binary: Bun.serve, WebSocket, tRPC, static assets, TTS     |
+| `apps/web`                   | The client: Vite + React + TanStack Router, all three surfaces |
+| `packages/api`               | tRPC router, the match service, the per-match write queue      |
+| `packages/db`                | drizzle-orm + `bun:sqlite`, schema, migrations, seed           |
+| `packages/realtime`          | WebSocket protocol, publisher, subscribe hook                  |
+| `packages/ui`                | shadcn/ui (new-york, neutral), tailwind v4, `globals.css`      |
+| `packages/common`            | consts, zod schemas, utils, the `GameDefinition` contract      |
+| `packages/games/*`           | one package per game — see `packages/games/README.md`          |
+| `packages/typescript-config` | shared tsconfig bases                                          |
+
+### The database
+
+One SQLite file, at `~/.gameshows/gameshows.db` unless `GAMESHOWS_DB` says
+otherwise. The binary migrates and seeds it on every boot, both idempotent.
+
+Schema changes go through drizzle-kit:
+
+```bash
+bun run db:generate   # writes drizzle/*.sql and regenerates migrations.generated.ts
+```
+
+That generated module is what makes migrations work inside the binary: there is no
+`drizzle/` folder to read at runtime, so the SQL is compiled in. Commit both.
+
+```bash
+bun run db:migrate    # apply to the local file without starting the server
+bun run db:status     # what is applied, what is pending
+bun run db:studio
+```
+
+Deleting the file resets everything, including the host PIN.
