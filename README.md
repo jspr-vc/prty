@@ -291,3 +291,15 @@ bun run db:studio
 ```
 
 Deleting the file resets everything, including the host PIN.
+
+### Carrying the show between machines
+
+`data/gameshows.db` is a committed copy of the database, taken without the
+narration cache. The cache is almost all of the live file and is re-rendered
+on demand. The copy includes the host PIN.
+
+```bash
+bun run db:snapshot          # live database → data/gameshows.db
+bun run db:restore           # data/gameshows.db → live database, if there is none yet
+bun run db:restore --force   # replace an existing one; stop the server first
+```

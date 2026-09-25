@@ -19,5 +19,8 @@ apps/host/src/espeak.generated.js
 *.db-wal
 *.db-shm
 
+# A snapshot of the show, without the narration cache: `bun run db:snapshot`.
+!data/gameshows.db
+
 # Playwright MCP session logs.
 .playwright-mcp

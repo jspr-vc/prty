@@ -16,6 +16,8 @@
     "db:seed": "turbo run db:seed",
     "db:status": "turbo run db:status",
     "db:studio": "turbo run db:studio",
+    "db:snapshot": "bun run packages/db/scripts/snapshot.ts snapshot",
+    "db:restore": "bun run packages/db/scripts/snapshot.ts restore",
     "prepare": "lefthook install || true"
   },
   "devDependencies": {
