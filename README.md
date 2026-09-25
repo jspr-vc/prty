@@ -43,8 +43,13 @@ bun install
 
 ### The binary
 
-This is how a night is meant to run. Build it once and copy it to whichever
-laptop sits next to the TV.
+This is how a night is meant to run. Download it from the repo's GitHub
+releases, or build it once, and copy it to whichever laptop sits next to the TV.
+
+A release binary has piper narration built in, so the laptop needs nothing
+installed. See [Piper voices built into the binary](#piper-voices-built-into-the-binary).
+There are builds for `linux-x64` and `darwin-arm64`. The macOS one is unsigned:
+run `xattr -d com.apple.quarantine gameshows-darwin-arm64` once before opening it.
 
 ```bash
 bun run build:binary   # → bin/gameshows
@@ -168,14 +173,32 @@ and the console says so rather than failing quietly.
 ### Good narration, offline, for free
 
 [Piper](https://github.com/OHF-Voice/piper1-gpl) is a neural TTS that runs on CPU
-and sounds like a person rather than a 1985 speech synthesiser. Install it, drop
-one or more voice models into the voices directory, and restart:
+and sounds like a person rather than a 1985 speech synthesiser. It needs Python
+3.9 or newer. Install it with `pipx` so `piper` stays on `PATH` whichever
+virtualenv is active when the server starts:
 
 ```bash
-mkdir -p ~/.gameshows/voices
-# Grab a voice (.onnx and its .onnx.json) from rhasspy/piper-voices on HuggingFace,
-# e.g. en_US-lessac-medium, and put both files in that directory.
+pipx install piper-tts
+piper --help            # should print usage, not a traceback
 ```
+
+On Arch, the AUR build installs it as `piper-tts`, which is found too.
+
+Then give it voices. Each one is an `.onnx` model and the `.onnx.json` beside it,
+from [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices). These
+are the two the packs have been narrated with:
+
+```bash
+mkdir -p ~/.gameshows/voices && cd ~/.gameshows/voices
+base=https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US
+for voice in lessac ryan; do
+  for ext in onnx onnx.json; do
+    curl -LO "$base/$voice/medium/en_US-$voice-medium.$ext"
+  done
+done
+```
+
+Restart the server and piper takes over from espeak.
 
 Every `.onnx` found becomes a selectable voice, named after its filename. The
 search covers `~/.gameshows/voices`, `/usr/share/piper-voices` and
@@ -219,6 +242,31 @@ never rendered and falls back to synthesising them live, mid-show.
 Re-running is cheap: anything already rendered is skipped, and the summary says
 how many were reused. `#` in the progress line is a render, `·` is a cache hit,
 `!` is a line the engine refused.
+
+### Piper voices built into the binary
+
+Pushing a `v*` tag runs `.github/workflows/release.yml`. It installs piper,
+renders every pack in `en_US-lessac-medium` and `en_US-ryan-medium` at 95%,
+converts the clips to MP3 (about 12 MB per voice), embeds them in the binary and
+attaches the binaries to a GitHub release. Running the workflow by hand does the
+same but only uploads them as build artifacts.
+
+Built-in voices appear in the console's voice list as
+`en_US-lessac-medium (built in)`. **Pick one explicitly and leave the speed at
+95%.** With no voice chosen, the TV uses its own browser voices and never asks
+for the clips. At another speed, the clips don't match and the line is
+synthesised live instead. A line re-rendered on the laptop wins over the
+built-in one.
+
+To build the same thing locally from clips you've already rendered (needs
+ffmpeg):
+
+```bash
+bun run --cwd apps/host pack-narration ~/.gameshows/gameshows.db   # → apps/host/narration/clips.db
+bun run build:binary                                               # embeds it
+```
+
+`apps/host/narration/` is gitignored. Delete it to build without built-in voices.
 
 ## Playing over WiFi
 

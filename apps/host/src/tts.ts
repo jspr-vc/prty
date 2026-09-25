@@ -6,6 +6,7 @@ import { basename, join } from 'node:path'
 import { db, eq } from '@workspace/db'
 import { narrationClip } from '@workspace/db/schema'
 import { ESPEAK_WASM_VOICES, synthesizeWithWasm } from './espeak-wasm'
+import { NARRATION } from './narration.generated'
 
 /**
  * Narration has two halves. The TV speaks with `speechSynthesis` when the
@@ -419,8 +420,38 @@ export interface TtsCapabilities {
 export async function capabilities(): Promise<TtsCapabilities> {
   const status = engineStatus()
   const found = detectEngine()
-  if (!found) return { engine: null, voices: [], status }
-  return { engine: found.engine.name, voices: await found.engine.voices(found.binary), status }
+  const installed = found ? await found.engine.voices(found.binary) : []
+  // A built-in voice has to be offered by name: with no voice chosen, the TV
+  // uses its own browser voices and never asks for the clips.
+  const builtIn = builtInVoices()
+    .filter((voice) => !installed.some((entry) => entry.id === voice))
+    .map((voice) => ({ id: voice, name: `${voice} (built in)` }))
+  return { engine: found?.engine.name ?? null, voices: [...installed, ...builtIn], status }
+}
+
+let builtInVoiceList: string[] | undefined
+
+/** Voices piper rendered when the binary was built, playable with no engine installed. */
+function builtInVoices(): string[] {
+  if (!NARRATION) return []
+  builtInVoiceList ??= (
+    NARRATION.query('select distinct voice from clip order by voice').all() as { voice: string }[]
+  ).map((row) => row.voice)
+  return builtInVoiceList
+}
+
+function findBuiltInClip(id: string): Clip | null {
+  if (!NARRATION) return null
+  const row = NARRATION.query('select mime_type, audio from clip where id = ?').get(id) as {
+    mime_type: string
+    audio: Uint8Array
+  } | null
+  if (!row) return null
+  const bytes = row.audio.buffer.slice(
+    row.audio.byteOffset,
+    row.audio.byteOffset + row.audio.byteLength,
+  ) as ArrayBuffer
+  return { mimeType: row.mime_type, bytes }
 }
 
 const MAX_TEXT_LENGTH = 1200
@@ -471,6 +502,11 @@ export function findCachedClip(
       .where(eq(narrationClip.id, clipId(name, voice, rate, trimmed)))
       .get()
     if (row) return { mimeType: row.mimeType, bytes: decode(row.audio) }
+  }
+  // After the database, so a line the host re-rendered locally wins.
+  for (const name of new Set(names.filter(Boolean) as string[])) {
+    const clip = findBuiltInClip(clipId(name, voice, rate, trimmed))
+    if (clip) return clip
   }
   return null
 }

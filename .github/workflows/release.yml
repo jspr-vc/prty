@@ -1,0 +1,98 @@
+name: Release
+
+# Renders every pack with piper, embeds the clips in the binary and publishes
+# it, so the room laptop gets piper narration without installing piper.
+# A tag publishes a GitHub release; a manual run only uploads the artifacts.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Narrate, build, publish
+    runs-on: ubuntu-latest
+    # Piper loads its model once per line, so every pack in two voices is slow.
+    timeout-minutes: 120
+    env:
+      VOICES: en_US-lessac-medium en_US-ryan-medium
+      # Must match the session's narration speed on the night: 95 is the default.
+      RATE: '95'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      - run: bun install --frozen-lockfile
+
+      - name: Install piper and ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          pipx install piper-tts
+
+      - name: Download voices
+        run: |
+          mkdir -p "$RUNNER_TEMP/voices"
+          cd "$RUNNER_TEMP/voices"
+          base=https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US
+          for voice in $VOICES; do
+            speaker=$(echo "$voice" | cut -d- -f2)
+            quality=$(echo "$voice" | cut -d- -f3)
+            for ext in onnx onnx.json; do
+              curl -fsSLO "$base/$speaker/$quality/$voice.$ext"
+            done
+          done
+
+      - name: Render every pack with piper
+        env:
+          GAMESHOWS_DB: ${{ runner.temp }}/render.db
+          GAMESHOWS_VOICES: ${{ runner.temp }}/voices
+        run: |
+          # A piper that cannot start is struck off and espeak renders instead,
+          # which would ship robot voices under piper's name. Fail first.
+          bun run --cwd apps/host voices | tee "$RUNNER_TEMP/voices.txt"
+          grep -q '^engine: piper' "$RUNNER_TEMP/voices.txt"
+          for voice in $VOICES; do
+            bun run --cwd apps/host narrate --voice "$voice" --rate "$RATE"
+          done
+
+      - name: Pack the clips
+        run: bun run --cwd apps/host pack-narration "$RUNNER_TEMP/render.db"
+
+      - name: Build the client and embed the clips
+        run: bun run build
+
+      - name: Compile binaries
+        working-directory: apps/host
+        run: |
+          for target in linux-x64 darwin-arm64; do
+            bun build --compile --minify --sourcemap --target="bun-$target" \
+              src/index.ts --outfile "../../release/gameshows-$target"
+          done
+
+      - name: The binary starts and offers the built-in voices
+        run: |
+          GAMESHOWS_DB="$RUNNER_TEMP/smoke.db" ./release/gameshows-linux-x64 --port 4321 --pin 123456 &
+          for _ in $(seq 1 50); do
+            curl -sf http://127.0.0.1:4321/api/health >/dev/null && break
+            sleep 0.2
+          done
+          curl -sf http://127.0.0.1:4321/api/health | grep -q '"client":true'
+          curl -sf http://127.0.0.1:4321/api/tts/capabilities | grep -q '(built in)'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gameshows
+          path: release/
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release/* --generate-notes

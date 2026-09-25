@@ -14,6 +14,11 @@ apps/host/src/assets.generated.js
 # than to the repo, and `espeak.generated.d.ts` is what tsc reads.
 apps/host/src/espeak.generated.js
 
+# Piper clips packed for embedding (scripts/pack-narration.ts). CI makes these
+# for release builds; `narration.generated.d.ts` is what tsc reads.
+apps/host/narration
+apps/host/src/narration.generated.js
+
 # The show itself.
 *.db
 *.db-wal
