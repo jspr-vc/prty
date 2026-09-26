@@ -5,7 +5,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "src/assets.generated.js"]
+      "outputs": ["dist/**", "src/assets.generated.js", "src/narration.generated.js"]
     },
     "build:binary": {
       "dependsOn": ["^build"],

@@ -77,11 +77,14 @@ Vite proxies `/api` and `/ws` to 3001; the binary serves all of it from one port
 - **`packages/games/registry` must stay free of React** — `packages/api` imports it
   to run reducers server-side. Components are imported by the app from
   `<game>/display` and `<game>/control`.
-- **`packages/db/src/migrations.generated.ts`, `apps/host/src/assets.generated.js`
-  and `apps/host/src/espeak.generated.js` are generated, and only the first is
-  committed.** The binary has no folder to read migrations, client assets or
-  voice data from, so all of it is compiled in. Run `bun run db:generate` after
-  any schema change; the other two are rebuilt by `bun run build`, and the
+- **`packages/db/src/migrations.generated.ts`, `apps/host/src/assets.generated.js`,
+  `apps/host/src/espeak.generated.js` and `apps/host/src/narration.generated.js`
+  are generated, and only the first is committed.** The binary has no folder to
+  read migrations, client assets, voice data or pre-rendered clips from, so all
+  of it is compiled in. The clips come from `apps/host/narration/clips.db`,
+  which the release workflow packs from a piper render; without it the module
+  exports null. Run `bun run db:generate` after any schema change; the others
+  are rebuilt by `bun run build`, and the
   committed `.d.ts` beside each uncommitted module is what `tsc` reads.
 - **The espeak glue is patched as it is copied.** `text2wav` ends its Emscripten
   glue by mounting the real filesystem over `/usr/share`, rooted at its own

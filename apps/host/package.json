@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && GAMESHOWS_PORT=3001 bun run --hot src/index.ts",
-    "start": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run src/index.ts",
-    "build": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts",
-    "build:binary": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun build --compile --minify --sourcemap src/index.ts --outfile ../../bin/gameshows",
-    "narrate": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run src/index.ts narrate",
-    "voices": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run src/index.ts voices",
+    "dev": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run scripts/bundle-narration.ts && GAMESHOWS_PORT=3001 bun run --hot src/index.ts",
+    "start": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run scripts/bundle-narration.ts && bun run src/index.ts",
+    "build": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run scripts/bundle-narration.ts",
+    "build:binary": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run scripts/bundle-narration.ts && bun build --compile --minify --sourcemap src/index.ts --outfile ../../bin/gameshows",
+    "narrate": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run scripts/bundle-narration.ts && bun run src/index.ts narrate",
+    "voices": "bun run scripts/bundle-espeak.ts && bun run scripts/bundle-assets.ts && bun run scripts/bundle-narration.ts && bun run src/index.ts voices",
+    "pack-narration": "bun run scripts/pack-narration.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -13,6 +13,7 @@
       "!**/dist",
       "!**/.turbo",
       "!**/drizzle",
+      "!**/*.generated.ts",
       "!**/next-env.d.ts"
     ]
   },
