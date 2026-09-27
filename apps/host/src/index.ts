@@ -19,6 +19,7 @@ const { values, positionals } = parseArgs({
     rate: { type: 'string' },
     mode: { type: 'string' },
     regenerate: { type: 'boolean' },
+    prune: { type: 'boolean' },
   },
   allowPositionals: true,
 })
@@ -40,6 +41,7 @@ narrate options:
   --rate       Speaking speed as a percentage (default 95, matching a new session)
   --mode       clues | everything (default everything)
   --regenerate Render every line again, replacing what is already cached
+  --prune      Then delete this voice's clips for lines no pack has any more
 
 Environment:
   GAMESHOWS_DB       Where the show is stored (default ~/.gameshows/gameshows.db)
@@ -75,6 +77,7 @@ if (command === 'narrate') {
     rate: Number(values.rate ?? 95),
     mode,
     regenerate: values.regenerate === true,
+    prune: values.prune === true,
   })
   process.exit(code)
 }

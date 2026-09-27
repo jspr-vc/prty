@@ -2,7 +2,14 @@ import type { NarrationMode } from '@workspace/common/consts'
 import { shouldNarrate } from '@workspace/common/game'
 import { db } from '@workspace/db'
 import { getGame } from '@workspace/games'
-import { cachedClip, detectEngine, synthesize, voicesDirectory } from './tts'
+import {
+  cachedClip,
+  detectEngine,
+  engineClipId,
+  pruneClips,
+  synthesize,
+  voicesDirectory,
+} from './tts'
 
 export interface NarrateOptions {
   /** Render only this pack slug. Omitted, every pack is rendered. */
@@ -21,6 +28,13 @@ export interface NarrateOptions {
    * is then exactly the wrong answer.
    */
   regenerate?: boolean
+  /**
+   * Afterwards, delete this engine's clips in this voice for lines no pack has
+   * any more. A database carried between runs otherwise keeps every edited
+   * line's old rendering, and packing it would ship them all. Every pack must
+   * be walked for this to know what is current, so it refuses `pack`.
+   */
+  prune?: boolean
   /**
    * Called after every line, for a caller that is not a terminal.
    *
@@ -67,6 +81,12 @@ export async function narrateAll(options: NarrateOptions): Promise<NarrateResult
     return { code: 1, error }
   }
 
+  if (options.prune && options.pack) {
+    const error = 'Pruning needs every pack rendered, so it cannot be combined with a pack slug.'
+    if (!options.quiet) console.error(error)
+    return { code: 1, error }
+  }
+
   const packs = await db.query.gamePack.findMany({ with: { game: true } })
   const wanted = options.pack ? packs.filter((pack) => pack.slug === options.pack) : packs
 
@@ -89,6 +109,7 @@ export async function narrateAll(options: NarrateOptions): Promise<NarrateResult
   let cached = 0
   let failed = 0
   let done = 0
+  const current = new Set<string>()
   const started = Date.now()
 
   // Counted up front so a progress bar has a denominator. The pass itself still
@@ -131,6 +152,8 @@ export async function narrateAll(options: NarrateOptions): Promise<NarrateResult
     write(`${pack.name} (${lines.length} lines) `)
 
     for (const line of lines) {
+      const id = engineClipId(options.voice ?? null, options.rate, line.text)
+      if (id) current.add(id)
       if (!options.regenerate && cachedClip(options.voice ?? null, options.rate, line.text)) {
         cached++
         write('·')
@@ -155,10 +178,15 @@ export async function narrateAll(options: NarrateOptions): Promise<NarrateResult
     write('\n')
   }
 
+  // Only after a clean pass: a pack that failed to parse contributed no ids,
+  // and pruning then would delete its clips.
+  const pruned = options.prune && failed === 0 ? pruneClips(options.voice ?? null, current) : 0
+
   const seconds = ((Date.now() - started) / 1000).toFixed(1)
   const skipped = options.regenerate ? 'none skipped' : `${cached} already cached`
   if (!options.quiet) {
     console.log(`\n${rendered} rendered, ${skipped}, ${failed} failed — ${seconds}s`)
+    if (options.prune) console.log(`${pruned} stale clip(s) pruned`)
     if (failed > 0) console.log('A "!" is a line the engine refused; re-run to retry just those.')
     console.log(
       `\nSet the same voice and speed (${options.rate}%) on the night, or the TV will ask for` +
