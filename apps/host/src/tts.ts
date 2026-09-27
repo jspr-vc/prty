@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
-import { db, eq } from '@workspace/db'
+import { and, db, eq, isNull } from '@workspace/db'
 import { narrationClip } from '@workspace/db/schema'
 import { ESPEAK_WASM_VOICES, synthesizeWithWasm } from './espeak-wasm'
 import { NARRATION } from './narration.generated'
@@ -511,13 +511,23 @@ export function findCachedClip(
   return null
 }
 
-/** Whether *this* engine has already rendered a line, for the pre-render's progress. */
-export function cachedClip(voice: string | null, ratePercent: number, text: string): boolean {
+/** The id *this* engine would store a line under, or null with no engine. */
+export function engineClipId(
+  voice: string | null,
+  ratePercent: number,
+  text: string,
+): string | null {
   const found = detectEngine()
-  if (!found) return false
+  if (!found) return null
   const trimmed = text.trim().slice(0, MAX_TEXT_LENGTH)
   const rate = Math.max(50, Math.min(150, Math.round(ratePercent)))
-  const id = clipId(found.engine.name, voice, rate, trimmed)
+  return clipId(found.engine.name, voice, rate, trimmed)
+}
+
+/** Whether *this* engine has already rendered a line, for the pre-render's progress. */
+export function cachedClip(voice: string | null, ratePercent: number, text: string): boolean {
+  const id = engineClipId(voice, ratePercent, text)
+  if (!id) return false
   return (
     db
       .select({ id: narrationClip.id })
@@ -525,6 +535,31 @@ export function cachedClip(voice: string | null, ratePercent: number, text: stri
       .where(eq(narrationClip.id, id))
       .get() !== undefined
   )
+}
+
+/**
+ * Deletes this engine's clips in a voice that are not in `keep`, and returns how
+ * many went. Every rate goes: the ids hash the rate, so there is no column to
+ * scope by.
+ */
+export function pruneClips(voice: string | null, keep: Set<string>): number {
+  const found = detectEngine()
+  if (!found) return 0
+  const stale = db
+    .select({ id: narrationClip.id })
+    .from(narrationClip)
+    .where(
+      and(
+        eq(narrationClip.engine, found.engine.name),
+        voice === null ? isNull(narrationClip.voice) : eq(narrationClip.voice, voice),
+      ),
+    )
+    .all()
+    .filter((row) => !keep.has(row.id))
+  db.transaction((tx) => {
+    for (const row of stale) tx.delete(narrationClip).where(eq(narrationClip.id, row.id)).run()
+  })
+  return stale.length
 }
 
 function decode(base64: string): ArrayBuffer {

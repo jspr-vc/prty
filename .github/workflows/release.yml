@@ -49,6 +49,17 @@ jobs:
             done
           done
 
+      # Clips are keyed on voice, rate and text, so the last render is restored
+      # even when packs changed and only new or edited lines are rendered again.
+      # The exact key only decides whether there is anything new to save.
+      - name: Restore the last render
+        id: render-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/render.db*
+          key: piper-render-${{ env.VOICES }}-${{ env.RATE }}-${{ hashFiles('packages/db/src/seed/**', 'packages/games/*/src/**') }}
+          restore-keys: piper-render-${{ env.VOICES }}-${{ env.RATE }}-
+
       - name: Render every pack with piper
         env:
           GAMESHOWS_DB: ${{ runner.temp }}/render.db
@@ -58,9 +69,19 @@ jobs:
           # which would ship robot voices under piper's name. Fail first.
           bun run --cwd apps/host voices | tee "$RUNNER_TEMP/voices.txt"
           grep -q '^engine: piper' "$RUNNER_TEMP/voices.txt"
+          # --prune drops restored clips for lines no pack has any more, which
+          # would otherwise be packed into the binary.
           for voice in $VOICES; do
-            bun run --cwd apps/host narrate --voice "$voice" --rate "$RATE"
+            bun run --cwd apps/host narrate --voice "$voice" --rate "$RATE" --prune
           done
+
+      # Saved straight away, so a later step failing does not throw the render out.
+      - name: Save the render
+        if: steps.render-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/render.db*
+          key: ${{ steps.render-cache.outputs.cache-primary-key }}
 
       - name: Pack the clips
         run: bun run --cwd apps/host pack-narration "$RUNNER_TEMP/render.db"
