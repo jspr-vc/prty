@@ -2,7 +2,7 @@ import type { JeopardyPack } from '@workspace/game-jeopardy'
 
 /**
  * A third general-audience board. Picks categories neither General Trivia nor
- * Pub Quiz touch: space, television, languages, art, money, games and the sea.
+ * Barkada Quiz touch: space, television, languages, art, money, games and the sea.
  */
 export const generalTriviaPack2: JeopardyPack = {
   rounds: [
@@ -41,31 +41,31 @@ export const generalTriviaPack2: JeopardyPack = {
           ],
         },
         {
-          name: 'On The Telly',
+          name: 'On TV',
           clues: [
             {
-              clue: 'The yellow animated family from Springfield.',
-              answer: 'Who are The Simpsons?',
+              clue: 'The long-running Philippine noontime show that made "Dabarkads" a household word.',
+              answer: 'What is Eat Bulaga?',
               dailyDouble: false,
             },
             {
-              clue: 'The sitcom about six New Yorkers and a coffee shop called Central Perk.',
-              answer: 'What is Friends?',
+              clue: 'Coco Martin starred as Cardo Dalisay in this long-running action series.',
+              answer: 'What is FPJ’s Ang Probinsyano?',
               dailyDouble: false,
             },
             {
-              clue: 'The fantasy series that ended in 2019 with the fight for the Iron Throne.',
-              answer: 'What is Game of Thrones?',
+              clue: 'The South Korean Netflix drama in which debtors play deadly children’s games.',
+              answer: 'What is Squid Game?',
               dailyDouble: false,
             },
             {
-              clue: 'The chemistry teacher turned drug lord in Breaking Bad.',
-              answer: 'Who is Walter White?',
+              clue: 'The straw-hatted pirate captain at the center of One Piece.',
+              answer: 'Who is Monkey D. Luffy?',
               dailyDouble: true,
             },
             {
-              clue: 'The longest-running science-fiction show on television, first broadcast in 1963.',
-              answer: 'What is Doctor Who?',
+              clue: 'This Japanese robot anime was pulled from Philippine TV in 1979 under martial law, then remade by GMA in 2023.',
+              answer: 'What is Voltes V?',
               dailyDouble: false,
             },
           ],
@@ -79,8 +79,8 @@ export const generalTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "'Danke' means thank you in this language.",
-              answer: 'What is German?',
+              clue: '"Maayong buntag" means good morning in this Philippine language.',
+              answer: 'What is Cebuano, or Bisaya?',
               dailyDouble: false,
             },
             {
@@ -89,8 +89,8 @@ export const generalTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "The language invented in 1887 to be everyone's second language.",
-              answer: 'What is Esperanto?',
+              clue: 'The precolonial Tagalog script whose characters each stand for a syllable.',
+              answer: 'What is Baybayin?',
               dailyDouble: false,
             },
             {
@@ -104,28 +104,28 @@ export const generalTriviaPack2: JeopardyPack = {
           name: 'Art Gallery',
           clues: [
             {
-              clue: "Leonardo's portrait with the famous smile.",
+              clue: 'Leonardo’s portrait with the famous smile.',
               answer: 'What is the Mona Lisa?',
               dailyDouble: false,
             },
             {
-              clue: 'He painted The Starry Night and cut off part of his own ear.',
-              answer: 'Who is Vincent van Gogh?',
+              clue: 'The Mexican painter known for her self-portraits and her unbroken brow.',
+              answer: 'Who is Frida Kahlo?',
               dailyDouble: false,
             },
             {
-              clue: 'The Spanish artist behind Guernica.',
-              answer: 'Who is Pablo Picasso?',
+              clue: 'The Japanese artist behind The Great Wave off Kanagawa.',
+              answer: 'Who is Hokusai?',
               dailyDouble: false,
             },
             {
-              clue: 'He painted the ceiling of the Sistine Chapel.',
-              answer: 'Who is Michelangelo?',
+              clue: 'Juan Luna’s giant canvas that won gold at the 1884 Madrid Exposition.',
+              answer: 'What is the Spoliarium?',
               dailyDouble: false,
             },
             {
-              clue: 'This Norwegian painted The Scream.',
-              answer: 'Who is Edvard Munch?',
+              clue: 'The first National Artist of the Philippines, known for sunlit rural scenes.',
+              answer: 'Who is Fernando Amorsolo?',
               dailyDouble: false,
             },
           ],
@@ -134,28 +134,24 @@ export const generalTriviaPack2: JeopardyPack = {
           name: 'Money Talks',
           clues: [
             {
-              clue: 'The currency of Japan.',
-              answer: 'What is the yen?',
+              clue: 'The currency of the Philippines.',
+              answer: 'What is the peso?',
+              dailyDouble: false,
+            },
+            { clue: 'The currency of Japan.', answer: 'What is the yen?', dailyDouble: false },
+            {
+              clue: 'The most widely used mobile wallet in the Philippines, ahead of Maya.',
+              answer: 'What is GCash?',
               dailyDouble: false,
             },
             {
-              clue: 'The currency that arrived as notes and coins across much of Europe in 2002.',
-              answer: 'What is the euro?',
+              clue: 'The year-end pay every rank-and-file Filipino employee is entitled to by law.',
+              answer: 'What is 13th month pay?',
               dailyDouble: false,
             },
             {
-              clue: 'The face on the US hundred-dollar bill, who was never president.',
-              answer: 'Who is Benjamin Franklin?',
-              dailyDouble: false,
-            },
-            {
-              clue: 'The metal that backed the US dollar until 1971.',
-              answer: 'What is gold?',
-              dailyDouble: false,
-            },
-            {
-              clue: 'The first cryptocurrency, launched in 2009 by the pseudonymous Satoshi Nakamoto.',
-              answer: 'What is Bitcoin?',
+              clue: 'The Filipino savings circle in which members take turns collecting the pot.',
+              answer: 'What is a paluwagan?',
               dailyDouble: false,
             },
           ],
@@ -170,15 +166,11 @@ export const generalTriviaPack2: JeopardyPack = {
           name: 'Planet Earth',
           clues: [
             {
-              clue: 'The highest mountain on Earth.',
+              clue: 'The highest mountain above sea level.',
               answer: 'What is Everest?',
               dailyDouble: false,
             },
-            {
-              clue: 'The largest ocean.',
-              answer: 'What is the Pacific?',
-              dailyDouble: false,
-            },
+            { clue: 'The largest ocean.', answer: 'What is the Pacific?', dailyDouble: false },
             {
               clue: 'The largest hot desert in the world.',
               answer: 'What is the Sahara?',
@@ -200,28 +192,28 @@ export const generalTriviaPack2: JeopardyPack = {
           name: 'Game Night',
           clues: [
             {
-              clue: 'The board game in which you can buy Park Lane, or Boardwalk.',
-              answer: 'What is Monopoly?',
-              dailyDouble: false,
-            },
-            {
               clue: 'Each side starts this game with a king, a queen and eight pawns.',
               answer: 'What is chess?',
               dailyDouble: false,
             },
             {
-              clue: 'The word game in which the Q tile is worth ten points.',
-              answer: 'What is Scrabble?',
+              clue: 'The Filipino board game of sowing shells or stones along rows of holes.',
+              answer: 'What is sungka?',
               dailyDouble: false,
             },
             {
-              clue: 'Colonel Mustard did it with the candlestick in this game.',
-              answer: 'What is Cluedo, or Clue?',
+              clue: 'The tile game from China with suits of bamboo, characters and dots.',
+              answer: 'What is mahjong?',
+              dailyDouble: false,
+            },
+            {
+              clue: 'The three-player Filipino rummy-style card game.',
+              answer: 'What is tong-its?',
               dailyDouble: true,
             },
             {
-              clue: 'The 1995 German board game about settling an island and trading wood, brick, sheep, wheat and ore.',
-              answer: 'What is Catan?',
+              clue: 'In 2016, a DeepMind program beat Lee Sedol at this ancient board game of black and white stones.',
+              answer: 'What is Go?',
               dailyDouble: false,
             },
           ],
@@ -235,8 +227,8 @@ export const generalTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The largest fish in the sea, a gentle filter feeder.',
-              answer: 'What is the whale shark?',
+              clue: 'Donsol in Sorsogon is famous for these gentle giants, locally called butanding.',
+              answer: 'What are whale sharks?',
               dailyDouble: false,
             },
             {
@@ -245,8 +237,8 @@ export const generalTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "The world's largest coral reef, off the coast of Australia.",
-              answer: 'What is the Great Barrier Reef?',
+              clue: 'This UNESCO-listed reef lies in the middle of the Sulu Sea, off Palawan.',
+              answer: 'What is Tubbataha?',
               dailyDouble: false,
             },
             {
@@ -260,8 +252,8 @@ export const generalTriviaPack2: JeopardyPack = {
           name: 'Holidays',
           clues: [
             {
-              clue: 'The 25th of December.',
-              answer: 'What is Christmas?',
+              clue: 'The Tagalog name for the nine Masses held before dawn from December 16 to 24.',
+              answer: 'What is Simbang Gabi?',
               dailyDouble: false,
             },
             {
@@ -275,43 +267,43 @@ export const generalTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "Mexico's Day of the Dead falls at the start of this month.",
-              answer: 'What is November?',
+              clue: 'The Filipino name for the early November days spent visiting family graves.',
+              answer: 'What is Undas?',
               dailyDouble: false,
             },
             {
-              clue: "The Jewish new year, whose name means 'head of the year'.",
-              answer: 'What is Rosh Hashanah?',
+              clue: 'The January festival of Kalibo, Aklan, honoring the Santo Niño.',
+              answer: 'What is Ati-Atihan?',
               dailyDouble: false,
             },
           ],
         },
         {
-          name: 'Superheroes',
+          name: 'Pinoy Superheroes',
           clues: [
             {
-              clue: "Bruce Wayne's caped alter ego.",
-              answer: 'Who is Batman?',
+              clue: 'Narda swallows a magic stone and shouts this name to transform.',
+              answer: 'Who is Darna?',
               dailyDouble: false,
             },
             {
-              clue: 'The green mineral that weakens Superman.',
-              answer: 'What is kryptonite?',
+              clue: 'Weakling Tenteng lifts an enchanted weight to become this Mars Ravelo strongman.',
+              answer: 'Who is Captain Barbell?',
               dailyDouble: false,
             },
             {
-              clue: 'Peter Parker got his powers from a bite from one of these.',
-              answer: 'What is a spider?',
+              clue: 'The Mars Ravelo hero whose body stretches like rubber.',
+              answer: 'Who is Lastikman?',
               dailyDouble: false,
             },
             {
-              clue: "Thor's hammer, which only the worthy can lift.",
-              answer: 'What is Mjolnir?',
+              clue: 'The Manila supernatural detective from Budjette Tan and Kajo Baldisimo’s komiks, adapted by Netflix in 2021.',
+              answer: 'Who is Alexandra Trese?',
               dailyDouble: false,
             },
             {
-              clue: "Wonder Woman's home island.",
-              answer: 'What is Themyscira?',
+              clue: 'In Carlo Vergara’s komiks, the beautician Ada swallows a mysterious stone and becomes this superheroine.',
+              answer: 'Who is Zsazsa Zaturnnah?',
               dailyDouble: false,
             },
           ],

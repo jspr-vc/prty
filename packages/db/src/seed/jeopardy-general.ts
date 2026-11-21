@@ -1,6 +1,6 @@
 import type { JeopardyPack } from '@workspace/game-jeopardy'
 
-/** No specialist knowledge assumed — the pack to reach for with mixed company. */
+/** No specialist knowledge assumed. Written for a Filipino room with global general knowledge. */
 export const generalTriviaPack: JeopardyPack = {
   rounds: [
     {
@@ -11,8 +11,8 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'On The Map',
           clues: [
             {
-              clue: 'This city is home to the Colosseum.',
-              answer: 'What is Rome?',
+              clue: 'The largest island in the Philippines.',
+              answer: 'What is Luzon?',
               dailyDouble: false,
             },
             {
@@ -21,18 +21,18 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'This African river is the longest in the world.',
-              answer: 'What is the Nile?',
+              clue: 'This Bicol province is home to the near-perfect cone of Mayon Volcano.',
+              answer: 'What is Albay?',
               dailyDouble: false,
             },
             {
-              clue: 'Country made up of more than 17,000 islands.',
+              clue: 'Country made up of more than 17,000 islands, just south of the Philippines.',
               answer: 'What is Indonesia?',
               dailyDouble: true,
             },
             {
-              clue: 'The strait separating Europe from Africa at its narrowest.',
-              answer: 'What is the Strait of Gibraltar?',
+              clue: 'This strait between Samar and Leyte shares its name with the bridge that spans it.',
+              answer: 'What is the San Juanico Strait?',
               dailyDouble: false,
             },
           ],
@@ -42,7 +42,7 @@ export const generalTriviaPack: JeopardyPack = {
           clues: [
             {
               clue: 'The lion cub who could not wait to be king.',
-              answer: 'What is The Lion King?',
+              answer: 'Who is Simba?',
               dailyDouble: false,
             },
             {
@@ -51,18 +51,18 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'Its sequel was subtitled "Judgment Day".',
-              answer: 'What is The Terminator?',
+              clue: 'The 2019 South Korean film that became the first non-English-language Best Picture winner at the Oscars.',
+              answer: 'What is Parasite?',
               dailyDouble: false,
             },
             {
-              clue: 'Director of Jaws, E.T. and Jurassic Park.',
-              answer: 'Who is Steven Spielberg?',
+              clue: 'The Japanese director of Spirited Away and My Neighbor Totoro.',
+              answer: 'Who is Hayao Miyazaki?',
               dailyDouble: false,
             },
             {
-              clue: 'The first film to win Best Picture at the Oscars, in 1929.',
-              answer: 'What is Wings?',
+              clue: 'Nora Aunor plays Elsa, a faith healer, in this 1982 Ishmael Bernal classic.',
+              answer: 'What is Himala?',
               dailyDouble: false,
             },
           ],
@@ -71,28 +71,28 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'Something To Eat',
           clues: [
             {
-              clue: 'The spice that gives curry its yellow colour.',
+              clue: 'Filipino dish of meat braised in vinegar, soy sauce, garlic and bay leaf.',
+              answer: 'What is adobo?',
+              dailyDouble: false,
+            },
+            {
+              clue: 'The fertilized duck egg sold by street vendors at night.',
+              answer: 'What is balut?',
+              dailyDouble: false,
+            },
+            {
+              clue: 'The spice that gives curry its yellow color.',
               answer: 'What is turmeric?',
               dailyDouble: false,
             },
             {
-              clue: 'A margherita pizza is topped with tomato, basil and this cheese.',
-              answer: 'What is mozzarella?',
+              clue: 'This sizzling Kapampangan dish is made from chopped pork face and liver.',
+              answer: 'What is sisig?',
               dailyDouble: false,
             },
             {
-              clue: "This Italian coffee-and-mascarpone dessert's name means 'pick me up'.",
-              answer: 'What is tiramisu?',
-              dailyDouble: false,
-            },
-            {
-              clue: 'Sushi rice is seasoned with sugar, salt and this.',
-              answer: 'What is rice vinegar?',
-              dailyDouble: false,
-            },
-            {
-              clue: 'The country that gave us pad thai.',
-              answer: 'What is Thailand?',
+              clue: 'This Bicolano dish cooks dried taro leaves in coconut milk.',
+              answer: 'What is laing?',
               dailyDouble: false,
             },
           ],
@@ -106,13 +106,13 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'A group of these birds is called a murder.',
-              answer: 'What are crows?',
+              clue: 'The water buffalo known as the Filipino farmer’s best friend.',
+              answer: 'What is the carabao?',
               dailyDouble: false,
             },
             {
-              clue: 'This mammal is the only one that can truly fly.',
-              answer: 'What is a bat?',
+              clue: 'Once called the monkey-eating eagle, it is the national bird of the Philippines.',
+              answer: 'What is the Philippine eagle?',
               dailyDouble: false,
             },
             {
@@ -121,8 +121,8 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The largest animal that has ever lived.',
-              answer: 'What is the blue whale?',
+              clue: 'This small wild buffalo is found only on the island of Mindoro.',
+              answer: 'What is the tamaraw?',
               dailyDouble: false,
             },
           ],
@@ -131,8 +131,8 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'Turn It Up',
           clues: [
             {
-              clue: 'The Fab Four from Liverpool.',
-              answer: 'Who are The Beatles?',
+              clue: 'The K-pop group of RM, Jin, Suga, J-Hope, Jimin, V and Jungkook.',
+              answer: 'Who are BTS?',
               dailyDouble: false,
             },
             {
@@ -141,18 +141,18 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'She sang "Rolling in the Deep".',
-              answer: 'Who is Adele?',
+              clue: 'The P-pop girl group behind "Pantropiko" and "Salamin, Salamin".',
+              answer: 'Who is BINI?',
               dailyDouble: false,
             },
             {
-              clue: 'This composer kept writing after going deaf.',
-              answer: 'Who is Beethoven?',
+              clue: 'She won a Tony Award in 1991 for playing Kim in Miss Saigon.',
+              answer: 'Who is Lea Salonga?',
               dailyDouble: false,
             },
             {
-              clue: 'The instrument played by a timpanist.',
-              answer: 'What are kettledrums?',
+              clue: 'His song "Anak" became one of the best-selling Filipino records around the world.',
+              answer: 'Who is Freddie Aguilar?',
               dailyDouble: false,
             },
           ],
@@ -167,28 +167,28 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'Back In Time',
           clues: [
             {
-              clue: 'The wall that divided this city fell in 1989.',
-              answer: 'What is Berlin?',
+              clue: 'The Philippine national hero executed at Bagumbayan in 1896.',
+              answer: 'Who is José Rizal?',
               dailyDouble: false,
             },
             {
-              clue: 'The ship that carried the Pilgrims in 1620.',
-              answer: 'What is the Mayflower?',
+              clue: 'The chieftain of Mactan whose warriors defeated Magellan in 1521.',
+              answer: 'Who is Lapu-Lapu?',
               dailyDouble: false,
             },
             {
-              clue: 'She was the last active pharaoh of Egypt.',
-              answer: 'Who is Cleopatra?',
+              clue: 'The peaceful 1986 uprising that ended the Marcos dictatorship.',
+              answer: 'What is the EDSA People Power Revolution?',
               dailyDouble: false,
             },
             {
-              clue: 'The year the first human walked on the Moon.',
-              answer: 'What is 1969?',
+              clue: 'The year Philippine independence from Spain was declared in Kawit, Cavite.',
+              answer: 'What is 1898?',
               dailyDouble: true,
             },
             {
-              clue: 'This empire was ruled from Constantinople for a thousand years.',
-              answer: 'What is the Byzantine Empire?',
+              clue: 'This emperor of Mali was famed for the gold he gave away on his pilgrimage to Mecca.',
+              answer: 'Who is Mansa Musa?',
               dailyDouble: false,
             },
           ],
@@ -197,24 +197,28 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'Good Sport',
           clues: [
             {
-              clue: 'The number of players on a football pitch per side.',
+              clue: 'The number of players per side on a soccer field.',
               answer: 'What is eleven?',
               dailyDouble: false,
             },
             {
-              clue: 'This event happens every four years and has five rings.',
-              answer: 'What are the Olympics?',
-              dailyDouble: false,
-            },
-            { clue: 'In tennis, a score of zero.', answer: 'What is love?', dailyDouble: false },
-            {
-              clue: 'The country that has won the most FIFA World Cups.',
-              answer: 'What is Brazil?',
+              clue: 'The only boxer to win world titles in eight weight divisions.',
+              answer: 'Who is Manny Pacquiao?',
               dailyDouble: false,
             },
             {
-              clue: 'A hole in one on a par five is called this.',
-              answer: 'What is a condor?',
+              clue: 'This weightlifter won the first Olympic gold medal for the Philippines, at Tokyo 2020.',
+              answer: 'Who is Hidilyn Diaz?',
+              dailyDouble: false,
+            },
+            {
+              clue: 'This Filipino gymnast won two gold medals at the Paris 2024 Olympics.',
+              answer: 'Who is Carlos Yulo?',
+              dailyDouble: false,
+            },
+            {
+              clue: 'Played with a rattan ball and no hands, this sport’s name joins the Malay word for kick and the Thai word for ball.',
+              answer: 'What is sepak takraw?',
               dailyDouble: false,
             },
           ],
@@ -223,28 +227,28 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'Off The Shelf',
           clues: [
             {
-              clue: 'The boy wizard with a lightning scar.',
-              answer: 'Who is Harry Potter?',
+              clue: 'Rizal’s 1887 novel whose Latin title means "touch me not".',
+              answer: 'What is Noli Me Tángere?',
               dailyDouble: false,
             },
             {
-              clue: 'He wrote Romeo and Juliet.',
-              answer: 'Who is Shakespeare?',
+              clue: 'Rizal’s second novel, published in 1891.',
+              answer: 'What is El Filibusterismo?',
               dailyDouble: false,
             },
             {
-              clue: 'This novel opens "Call me Ishmael."',
-              answer: 'What is Moby-Dick?',
+              clue: 'Francisco Balagtas wrote this awit set in the kingdom of Albania.',
+              answer: 'What is Florante at Laura?',
               dailyDouble: false,
             },
             {
-              clue: 'The detective who lived at 221B Baker Street.',
-              answer: 'Who is Sherlock Holmes?',
+              clue: 'The Colombian author of One Hundred Years of Solitude.',
+              answer: 'Who is Gabriel García Márquez?',
               dailyDouble: false,
             },
             {
-              clue: 'She wrote Pride and Prejudice.',
-              answer: 'Who is Jane Austen?',
+              clue: 'The Japanese court lady who wrote The Tale of Genji.',
+              answer: 'Who is Murasaki Shikibu?',
               dailyDouble: false,
             },
           ],
@@ -263,18 +267,18 @@ export const generalTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The planet closest to the Sun.',
-              answer: 'What is Mercury?',
+              clue: 'The hottest planet in the solar system, even though Mercury is closer to the Sun.',
+              answer: 'What is Venus?',
               dailyDouble: false,
             },
             {
-              clue: 'The force that keeps us on the ground.',
-              answer: 'What is gravity?',
+              clue: 'The SI unit of force.',
+              answer: 'What is the newton?',
               dailyDouble: false,
             },
             {
               clue: 'Human blood is red because of this iron-carrying protein.',
-              answer: 'What is haemoglobin?',
+              answer: 'What is hemoglobin?',
               dailyDouble: false,
             },
           ],
@@ -283,28 +287,28 @@ export const generalTriviaPack: JeopardyPack = {
           name: 'Around The House',
           clues: [
             {
-              clue: 'The appliance that keeps food cold.',
-              answer: 'What is a refrigerator?',
+              clue: 'The plastic dipper found in nearly every Filipino bathroom.',
+              answer: 'What is a tabo?',
               dailyDouble: false,
             },
             {
-              clue: 'You use this to get creases out of a shirt.',
-              answer: 'What is an iron?',
+              clue: 'The rubber slippers you leave at the door.',
+              answer: 'What are tsinelas?',
               dailyDouble: false,
             },
             {
-              clue: 'This room usually contains a bath and a basin.',
-              answer: 'What is a bathroom?',
+              clue: 'The stiff outdoor broom made from coconut leaf midribs.',
+              answer: 'What is a walis tingting?',
               dailyDouble: false,
             },
             {
-              clue: 'The tool with a claw on one end for pulling nails.',
-              answer: 'What is a hammer?',
+              clue: 'The handwoven sleeping mat that Basey, Samar is famous for.',
+              answer: 'What is a banig?',
               dailyDouble: false,
             },
             {
-              clue: 'The three prongs of a UK plug carry live, neutral and this.',
-              answer: 'What is earth?',
+              clue: 'The reed that weavers in Basey, Samar dye and weave into their famous mats.',
+              answer: 'What is tikog?',
               dailyDouble: false,
             },
           ],
@@ -313,8 +317,9 @@ export const generalTriviaPack: JeopardyPack = {
     },
   ],
   final: {
-    category: 'World Landmarks',
-    clue: 'Completed in 1889 as a temporary exhibit, this tower was nearly torn down twenty years later.',
-    answer: 'What is the Eiffel Tower?',
+    category: 'Philippine Landmarks',
+    clue: 'Carved by hand into the mountains of northern Luzon, these terraces were inscribed as a UNESCO World Heritage Site in 1995.',
+    answer:
+      'What are the Rice Terraces of the Philippine Cordilleras, or the Ifugao Rice Terraces?',
   },
 }

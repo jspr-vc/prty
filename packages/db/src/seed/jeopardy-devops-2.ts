@@ -170,7 +170,7 @@ export const devOpsTriviaPack2: JeopardyPack = {
           name: 'Storage',
           clues: [
             {
-              clue: 'The Kubernetes object a pod makes to ask for durable storage.',
+              clue: 'The Kubernetes object a pod references to request durable storage.',
               answer: 'What is a PersistentVolumeClaim?',
               dailyDouble: false,
             },
@@ -235,13 +235,13 @@ export const devOpsTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The GitHub setting that stops a branch being deleted or force-pushed to.',
-              answer: 'What is branch protection?',
+              clue: 'The GitLab feature that blocks force pushes to a branch and stops Git commands deleting it.',
+              answer: 'What is a protected branch?',
               dailyDouble: false,
             },
             {
-              clue: "GitHub's bot that opens pull requests bumping outdated dependencies.",
-              answer: 'What is Dependabot?',
+              clue: 'The open-source bot many GitLab teams run to open merge requests bumping outdated dependencies.',
+              answer: 'What is Renovate?',
               dailyDouble: false,
             },
             {
@@ -265,7 +265,7 @@ export const devOpsTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "The public catalogue of known vulnerabilities, each with an ID like 'CVE-2021-44228'.",
+              clue: 'The public catalog of known vulnerabilities, in which Log4Shell is entry 2021-44228.',
               answer: 'What is CVE?',
               dailyDouble: false,
             },

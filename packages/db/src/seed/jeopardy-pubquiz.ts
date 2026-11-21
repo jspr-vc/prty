@@ -2,7 +2,7 @@ import type { JeopardyPack } from '@workspace/game-jeopardy'
 
 /**
  * A second general-audience board, so a night can run two without repeating.
- * Categories are deliberately chosen to miss the ones in General Trivia — no
+ * Categories are deliberately chosen to miss the ones in General Trivia: no
  * film, food, sport or animals here.
  */
 export const pubQuizPack: JeopardyPack = {
@@ -14,28 +14,24 @@ export const pubQuizPack: JeopardyPack = {
         {
           name: 'Capital Cities',
           clues: [
+            { clue: 'The capital of Japan.', answer: 'What is Tokyo?', dailyDouble: false },
             {
-              clue: 'The capital of Japan.',
-              answer: 'What is Tokyo?',
+              clue: 'Vietnam’s capital, which is not Ho Chi Minh City.',
+              answer: 'What is Hanoi?',
               dailyDouble: false,
             },
             {
-              clue: "Canada's capital, which is not Toronto.",
-              answer: 'What is Ottawa?',
-              dailyDouble: false,
-            },
-            {
-              clue: "Australia's capital, which is not Sydney.",
+              clue: 'Australia’s capital, which is not Sydney.',
               answer: 'What is Canberra?',
               dailyDouble: false,
             },
             {
-              clue: 'Turkey moved its capital here from Istanbul in 1923.',
-              answer: 'What is Ankara?',
+              clue: 'Myanmar moved its capital here from Yangon in the mid-2000s.',
+              answer: 'What is Naypyidaw?',
               dailyDouble: false,
             },
             {
-              clue: "Kazakhstan's capital, renamed Nur-Sultan in 2019 and changed back in 2022.",
+              clue: 'Kazakhstan’s capital, renamed Nur-Sultan in 2019 and changed back in 2022.',
               answer: 'What is Astana?',
               dailyDouble: true,
             },
@@ -60,7 +56,7 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The straw-coloured liquid making up a little over half of blood by volume.',
+              clue: 'The straw-colored liquid making up a little over half of blood by volume.',
               answer: 'What is plasma?',
               dailyDouble: false,
             },
@@ -95,8 +91,8 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The first woman to fly solo across the Atlantic, in 1932.',
-              answer: 'Who is Amelia Earhart?',
+              clue: 'After the 1986 snap election and EDSA, she became the first woman president of the Philippines.',
+              answer: 'Who is Corazon Aquino?',
               dailyDouble: false,
             },
           ],
@@ -135,13 +131,13 @@ export const pubQuizPack: JeopardyPack = {
           name: 'Flags And Symbols',
           clues: [
             {
-              clue: 'A red maple leaf sits at the centre of this flag.',
-              answer: 'What is Canada?',
+              clue: 'A plain white field with a single red circle.',
+              answer: 'What is Japan?',
               dailyDouble: false,
             },
             {
-              clue: 'A plain white field with a single red circle.',
-              answer: 'What is Japan?',
+              clue: 'This country’s flag has a white triangle, a sun with eight rays and three stars.',
+              answer: 'What is the Philippines?',
               dailyDouble: false,
             },
             {
@@ -150,12 +146,12 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The single-snake staff that is the actual symbol of medicine.',
-              answer: 'What is the Rod of Asclepius?',
+              clue: 'The Philippine flag is flown with its red field on top to signal this.',
+              answer: 'What is a state of war?',
               dailyDouble: false,
             },
             {
-              clue: 'The map on the United Nations flag is centred on this point.',
+              clue: 'The map on the United Nations flag is centered on this point.',
               answer: 'What is the North Pole?',
               dailyDouble: false,
             },
@@ -170,11 +166,7 @@ export const pubQuizPack: JeopardyPack = {
         {
           name: 'By The Numbers',
           clues: [
-            {
-              clue: 'The only even prime number.',
-              answer: 'What is two?',
-              dailyDouble: false,
-            },
+            { clue: 'The only even prime number.', answer: 'What is two?', dailyDouble: false },
             {
               clue: 'The interior angles of any triangle add up to this many degrees.',
               answer: 'What is 180?',
@@ -190,39 +182,35 @@ export const pubQuizPack: JeopardyPack = {
               answer: 'What is the Fibonacci sequence?',
               dailyDouble: false,
             },
-            {
-              clue: 'The value of zero factorial.',
-              answer: 'What is one?',
-              dailyDouble: false,
-            },
+            { clue: 'The value of zero factorial.', answer: 'What is one?', dailyDouble: false },
           ],
         },
         {
           name: 'Myth And Legend',
           clues: [
             {
-              clue: 'The Greek king of the gods.',
-              answer: 'Who is Zeus?',
+              clue: 'This Philippine creature splits at the waist and flies off with its upper half.',
+              answer: 'What is a manananggal?',
               dailyDouble: false,
             },
             {
-              clue: 'The Norse god of thunder.',
-              answer: 'Who is Thor?',
+              clue: 'The horse-headed trickster of Philippine folklore who leads travelers astray.',
+              answer: 'What is a tikbalang?',
               dailyDouble: false,
             },
             {
-              clue: 'The Greek hero who completed twelve labours.',
-              answer: 'Who is Heracles, or Hercules?',
-              dailyDouble: false,
-            },
-            {
-              clue: 'She had snakes for hair and turned those who looked at her to stone.',
+              clue: 'In Greek myth, she had snakes for hair and turned those who looked at her to stone.',
               answer: 'Who is Medusa?',
+              dailyDouble: false,
+            },
+            {
+              clue: 'The monkey god who helps Rama in the Ramayana.',
+              answer: 'Who is Hanuman?',
               dailyDouble: true,
             },
             {
-              clue: 'The jackal-headed Egyptian god associated with mummification.',
-              answer: 'Who is Anubis?',
+              clue: 'The Visayan sea serpent said to swallow the moon during an eclipse.',
+              answer: 'What is the Bakunawa?',
               dailyDouble: false,
             },
           ],
@@ -236,8 +224,8 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "Gutenberg's fifteenth-century invention that made books cheap.",
-              answer: 'What is the printing press?',
+              clue: 'Paper, printing, gunpowder and this navigation tool are the Four Great Inventions of China.',
+              answer: 'What is the compass?',
               dailyDouble: false,
             },
             {
@@ -246,19 +234,19 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'This Scot discovered penicillin by accident in 1928.',
+              clue: 'This scientist discovered penicillin by accident in 1928.',
               answer: 'Who is Alexander Fleming?',
               dailyDouble: false,
             },
             {
-              clue: 'The Wright brothers made their first powered flight at this spot in 1903.',
-              answer: 'What is Kitty Hawk?',
+              clue: 'This Filipina pediatrician designed a bamboo incubator for rural homes without electricity.',
+              answer: 'Who is Fe del Mundo?',
               dailyDouble: false,
             },
           ],
         },
         {
-          name: 'Colours',
+          name: 'Colors',
           clues: [
             {
               clue: 'Mixing blue and yellow paint gives you this.',
@@ -266,7 +254,7 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The additive primary colours of light are red, green and this.',
+              clue: 'The additive primary colors of light are red, green and this.',
               answer: 'What is blue?',
               dailyDouble: false,
             },
@@ -276,8 +264,8 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The pigment that makes plants green.',
-              answer: 'What is chlorophyll?',
+              clue: 'The orange pigment that gives carrots their color.',
+              answer: 'What is beta-carotene?',
               dailyDouble: false,
             },
             {
@@ -296,8 +284,8 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The storming of this Paris prison in 1789 kicked off the French Revolution.',
-              answer: 'What is the Bastille?',
+              clue: 'The month-long 1945 battle that left this Asian capital in ruins.',
+              answer: 'What is Manila?',
               dailyDouble: false,
             },
             {
@@ -306,13 +294,13 @@ export const pubQuizPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The charter sealed at Runnymede in 1215.',
-              answer: 'What is Magna Carta?',
+              clue: 'The 1942 forced march of Filipino and American prisoners of war toward Capas, Tarlac.',
+              answer: 'What is the Bataan Death March?',
               dailyDouble: false,
             },
             {
-              clue: 'His assassination in Sarajevo in 1914 set off the First World War.',
-              answer: 'Who is Archduke Franz Ferdinand?',
+              clue: 'His assassination at the Manila airport in 1983 galvanized the opposition to Marcos.',
+              answer: 'Who is Ninoy Aquino?',
               dailyDouble: false,
             },
           ],

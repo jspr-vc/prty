@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import { homedir, tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
-import { and, db, eq, isNull } from '@workspace/db'
+import { and, db, eq, isNull, sqlite } from '@workspace/db'
 import { narrationClip } from '@workspace/db/schema'
 import { ESPEAK_WASM_VOICES, synthesizeWithWasm } from './espeak-wasm'
 import { NARRATION } from './narration.generated'
@@ -560,6 +560,17 @@ export function pruneClips(voice: string | null, keep: Set<string>): number {
     for (const row of stale) tx.delete(narrationClip).where(eq(narrationClip.id, row.id)).run()
   })
   return stale.length
+}
+
+/**
+ * Deletes every clip in the database, for every engine and voice, and returns
+ * how many went. Clips compiled into the binary are read-only and stay playable.
+ * The vacuum is what gives the disk space back: SQLite otherwise keeps the pages.
+ */
+export function deleteAllClips(): number {
+  const { changes } = sqlite.run('delete from narration_clip')
+  sqlite.run('vacuum')
+  return changes
 }
 
 function decode(base64: string): ArrayBuffer {

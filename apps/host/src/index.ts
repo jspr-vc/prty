@@ -6,7 +6,13 @@ import { hasClientBundle } from './assets'
 import { lanAddresses } from './lan'
 import { narrateAll } from './narrate'
 import { startServer } from './server'
-import { capabilities, engineStatus, voicesDirectories, voicesDirectory } from './tts'
+import {
+  capabilities,
+  deleteAllClips,
+  engineStatus,
+  voicesDirectories,
+  voicesDirectory,
+} from './tts'
 
 const { values, positionals } = parseArgs({
   args: Bun.argv.slice(2),
@@ -30,6 +36,7 @@ if (values.help) {
   gameshows              Start the server
   gameshows narrate      Render every pack's narration to audio, up front
   gameshows voices       List the speech voices this machine can use
+  gameshows clear-renders  Delete every rendered voice clip from the database
 
   --port, -p   Port to listen on (default 3000, or GAMESHOWS_PORT)
   --pin        Force the host PIN instead of keeping the stored one
@@ -66,6 +73,11 @@ if (command === 'voices') {
   console.log(`searched: ${voicesDirectories().join(', ')}`)
   if (voices.length === 0) console.log('voices: none found')
   else for (const voice of voices) console.log(`  ${voice.id}  ${voice.name}`)
+  process.exit(0)
+}
+
+if (command === 'clear-renders') {
+  console.log(`deleted ${deleteAllClips()} clip(s) from ${databasePath()}`)
   process.exit(0)
 }
 
