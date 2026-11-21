@@ -1,29 +1,29 @@
 import type { FeudPack } from '@workspace/game-family-feud'
 
-/** Everyday questions anyone can shout an answer at, no specialist knowledge. */
+/** Everyday questions a Filipino room can shout an answer at, no specialist knowledge. */
 export const generalSurveyPack: FeudPack = {
   rounds: [
     {
       question: 'We asked 100 people: name something you do when you cannot sleep.',
       multiplier: 1,
       answers: [
-        { text: 'Look at your phone', points: 36 },
-        { text: 'Read a book', points: 21 },
-        { text: 'Get a drink', points: 15 },
-        { text: 'Watch television', points: 12 },
-        { text: 'Count sheep', points: 9 },
-        { text: 'Go for a walk', points: 4 },
+        { text: 'Scroll on your phone', points: 38 },
+        { text: 'Watch a K-drama or Netflix', points: 22 },
+        { text: 'Eat a midnight snack', points: 16 },
+        { text: 'Drink water or milk', points: 12 },
+        { text: 'Pray', points: 8 },
+        { text: 'Count sheep', points: 4 },
       ],
     },
     {
       question: 'Name something people always lose at home.',
       multiplier: 1,
       answers: [
-        { text: 'Keys', points: 40 },
-        { text: 'Phone', points: 24 },
-        { text: 'Remote control', points: 17 },
-        { text: 'Glasses', points: 11 },
-        { text: 'Socks', points: 5 },
+        { text: 'Cellphone', points: 32 },
+        { text: 'Keys', points: 25 },
+        { text: 'TV remote', points: 18 },
+        { text: 'Charger', points: 14 },
+        { text: 'One side of the tsinelas', points: 11 },
       ],
     },
     {
@@ -31,32 +31,32 @@ export const generalSurveyPack: FeudPack = {
       multiplier: 2,
       answers: [
         { text: 'Ice cream', points: 34 },
-        { text: 'Yoghurt', points: 22 },
-        { text: 'Crisps', points: 18 },
-        { text: 'Peanut butter', points: 13 },
-        { text: 'Leftover takeaway', points: 8 },
+        { text: 'Pancit canton', points: 22 },
+        { text: 'Chichirya', points: 18 },
+        { text: 'Condensed milk', points: 14 },
+        { text: 'Leftover ulam', points: 12 },
       ],
     },
     {
-      question: 'Name something you would take to a desert island.',
+      question: 'Name something you would bring to a deserted island.',
       multiplier: 2,
       answers: [
         { text: 'Water', points: 31 },
-        { text: 'A knife', points: 23 },
-        { text: 'Matches', points: 19 },
-        { text: 'A book', points: 14 },
-        { text: 'Sunscreen', points: 7 },
+        { text: 'Rice', points: 24 },
+        { text: 'A knife', points: 19 },
+        { text: 'A lighter', points: 15 },
+        { text: 'Sunblock', points: 11 },
       ],
     },
     {
       question: 'Name a reason someone might be late to a party.',
       multiplier: 3,
       answers: [
-        { text: 'Traffic', points: 38 },
-        { text: 'Could not decide what to wear', points: 22 },
-        { text: 'Got lost', points: 16 },
-        { text: 'Fell asleep', points: 13 },
-        { text: 'Still wrapping the present', points: 6 },
+        { text: 'Traffic', points: 42 },
+        { text: 'Filipino time', points: 22 },
+        { text: 'Could not decide what to wear', points: 15 },
+        { text: 'Fell asleep', points: 12 },
+        { text: 'Could not book a Grab', points: 9 },
       ],
     },
   ],

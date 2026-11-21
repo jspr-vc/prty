@@ -1,5 +1,6 @@
 import type { NarrationMode } from '@workspace/common/consts'
 import { narrateAll, type RenderProgress } from './narrate'
+import { deleteAllClips } from './tts'
 
 /**
  * The console's version of `gameshows narrate`.
@@ -37,6 +38,14 @@ let job: RenderJob = idle
 
 export function renderStatus(): RenderJob {
   return job
+}
+
+/** Returns the number of clips deleted, or null while a render is writing them. */
+export function deleteRenders(): number | null {
+  if (job.running) return null
+  const deleted = deleteAllClips()
+  job = idle
+  return deleted
 }
 
 export interface StartRenderOptions {

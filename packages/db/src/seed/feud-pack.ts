@@ -49,7 +49,7 @@ export const devSurveyPack: FeudPack = {
       ],
     },
     {
-      question: 'Name something that makes a pull request hard to review.',
+      question: 'Name something that makes a merge request hard to review.',
       multiplier: 3,
       answers: [
         { text: 'It is far too large', points: 41 },

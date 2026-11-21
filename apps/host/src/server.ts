@@ -8,7 +8,7 @@ import { gameSession } from '@workspace/db/schema'
 import { type ClientMessage, type ServerMessage, sessionTopic, WS_PATH } from '@workspace/realtime'
 import { setPublisher } from '@workspace/realtime/server'
 import { hasClientBundle, serveAsset } from './assets'
-import { renderStatus, startRender } from './render-job'
+import { deleteRenders, renderStatus, startRender } from './render-job'
 import { capabilities, synthesize } from './tts'
 
 interface SocketData {
@@ -74,9 +74,17 @@ export function startServer({ port, hostname = '0.0.0.0' }: ServerOptions) {
        */
       if (url.pathname === '/api/narration/render') {
         if (req.method === 'GET') return json(renderStatus())
-        if (req.method !== 'POST') return new Response('method not allowed', { status: 405 })
+        if (req.method !== 'POST' && req.method !== 'DELETE') {
+          return new Response('method not allowed', { status: 405 })
+        }
         if (!isHostPin(req.headers.get(HOST_PIN_HEADER))) {
           return new Response('host only', { status: 401 })
+        }
+
+        if (req.method === 'DELETE') {
+          const deleted = deleteRenders()
+          if (deleted === null) return new Response('render in progress', { status: 409 })
+          return json({ deleted })
         }
 
         const body = (await req.json().catch(() => ({}))) as {

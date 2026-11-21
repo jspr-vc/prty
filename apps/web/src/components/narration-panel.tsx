@@ -7,6 +7,7 @@ import { Button } from '@workspace/ui/components/ui/button'
 import { useEffect, useMemo, useState } from 'react'
 import {
   browserVoices,
+  deleteRenders,
   narrate,
   type RenderJob,
   regenerateLine,
@@ -132,6 +133,23 @@ export function NarrationPanel({ session }: { session: Session }) {
     await render.refetch()
   }
 
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteResult, setDeleteResult] = useState<string | null>(null)
+
+  const removeRenders = async () => {
+    setDeleting(true)
+    const deleted = await deleteRenders(readHostPin())
+    setDeleting(false)
+    setConfirmingDelete(false)
+    setDeleteResult(
+      deleted === null
+        ? 'Could not delete the renders.'
+        : `Deleted ${deleted} clip${deleted === 1 ? '' : 's'}. Clips built into the app still play.`,
+    )
+    await render.refetch()
+  }
+
   const update = (patch: { mode?: NarrationMode; rate?: number; voice?: string | null }) => {
     setNarration.mutate({
       sessionId: session.id,
@@ -247,7 +265,40 @@ export function NarrationPanel({ session }: { session: Session }) {
             >
               Re-render all
             </Button>
+            {confirmingDelete ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={deleting || job?.running}
+                  onClick={() => void removeRenders()}
+                >
+                  {deleting ? 'Deleting…' : 'Yes, delete every voice and pack'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={deleting}
+                  onClick={() => setConfirmingDelete(false)}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={job?.running}
+                onClick={() => {
+                  setDeleteResult(null)
+                  setConfirmingDelete(true)
+                }}
+              >
+                Delete all renders
+              </Button>
+            )}
           </div>
+          {deleteResult && <p className="text-muted-foreground text-xs">{deleteResult}</p>}
 
           {job?.running ? (
             <p className="text-muted-foreground text-xs tabular-nums">

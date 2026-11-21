@@ -158,6 +158,21 @@ export async function startRender(
   }
 }
 
+/** Returns how many clips went, or null if the server refused or a render is running. */
+export async function deleteRenders(pin: string | null): Promise<number | null> {
+  try {
+    const response = await fetch('/api/narration/render', {
+      method: 'DELETE',
+      headers: pin ? { [HOST_PIN_HEADER]: pin } : {},
+    })
+    if (!response.ok) return null
+    const { deleted } = (await response.json()) as { deleted: number }
+    return deleted
+  } catch {
+    return null
+  }
+}
+
 let playing: HTMLAudioElement | null = null
 
 export function stopNarration(): void {

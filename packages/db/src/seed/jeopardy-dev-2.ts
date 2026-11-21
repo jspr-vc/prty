@@ -19,7 +19,7 @@ export const devTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'This anchor matches the start of a line.',
+              clue: 'This anchor matches the start of the input, or of a line in multiline mode.',
               answer: 'What is the caret?',
               dailyDouble: false,
             },
@@ -44,7 +44,7 @@ export const devTriviaPack2: JeopardyPack = {
           name: 'Data Formats',
           clues: [
             {
-              clue: 'Douglas Crockford popularised this text format born from JavaScript object literals.',
+              clue: 'Douglas Crockford popularized this text format born from JavaScript object literals.',
               answer: 'What is JSON?',
               dailyDouble: false,
             },
@@ -54,7 +54,7 @@ export const devTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "Google's binary serialisation format, defined in .proto files.",
+              clue: "Google's binary serialization format, defined in .proto files.",
               answer: 'What are Protocol Buffers?',
               dailyDouble: false,
             },
@@ -94,7 +94,7 @@ export const devTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The Gang of Four book that catalogued 23 patterns was published in this year.',
+              clue: 'The Gang of Four book that cataloged 23 patterns was published in this year.',
               answer: 'What is 1994?',
               dailyDouble: false,
             },
@@ -104,7 +104,7 @@ export const devTriviaPack2: JeopardyPack = {
           name: 'Testing',
           clues: [
             {
-              clue: 'The colour a test suite is said to be when everything passes.',
+              clue: 'The color a test suite is said to be when everything passes.',
               answer: 'What is green?',
               dailyDouble: false,
             },
@@ -220,7 +220,7 @@ export const devTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "Python's global lock that lets only one thread run bytecode at a time, three letters.",
+              clue: "CPython's global lock that lets only one thread run bytecode at a time, three letters.",
               answer: 'What is the GIL?',
               dailyDouble: false,
             },
@@ -245,7 +245,7 @@ export const devTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: "She built A-0, the first compiler, and popularised the word 'debugging'.",
+              clue: "She built A-0, an early compiler, and popularized the word 'debugging'.",
               answer: 'Who is Grace Hopper?',
               dailyDouble: false,
             },
@@ -305,7 +305,7 @@ export const devTriviaPack2: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'The symmetric cipher NIST chose in 2001 to replace DES.',
+              clue: 'The symmetric cipher NIST standardized in 2001 to replace DES.',
               answer: 'What is AES?',
               dailyDouble: false,
             },

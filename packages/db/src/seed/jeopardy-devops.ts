@@ -34,7 +34,7 @@ export const devOpsTriviaPack: JeopardyPack = {
               dailyDouble: true,
             },
             {
-              clue: 'The open standard governing container image and runtime formats, abbreviated OCI.',
+              clue: 'The Linux Foundation project that sets the container image and runtime specs, abbreviated OCI.',
               answer: 'What is the Open Container Initiative?',
               dailyDouble: false,
             },
@@ -94,7 +94,7 @@ export const devOpsTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'This Red Hat configuration-management tool is agentless and organises work into playbooks.',
+              clue: 'This Red Hat configuration-management tool is agentless and organizes work into playbooks.',
               answer: 'What is Ansible?',
               dailyDouble: false,
             },
@@ -104,8 +104,8 @@ export const devOpsTriviaPack: JeopardyPack = {
           name: 'Pipelines',
           clues: [
             {
-              clue: "GitHub's built-in CI, configured under .github/workflows.",
-              answer: 'What are GitHub Actions?',
+              clue: 'GitLab’s built-in pipelines are configured in this YAML file at the repository root.',
+              answer: 'What is .gitlab-ci.yml?',
               dailyDouble: false,
             },
             {
@@ -250,7 +250,7 @@ export const devOpsTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'It is always this, according to the haiku — even when it is not this.',
+              clue: 'The haiku says it is not this, there is no way it is this, and then that it was this.',
               answer: 'What is DNS?',
               dailyDouble: false,
             },

@@ -11,7 +11,7 @@ export const devSurveyPack2: FeudPack = {
         { text: 'How to exit vim', points: 22 },
         { text: 'Date formatting', points: 18 },
         { text: 'The git command to undo the last thing', points: 15 },
-        { text: 'How to centre a div', points: 10 },
+        { text: 'How to center a div', points: 10 },
       ],
     },
     {
@@ -53,7 +53,7 @@ export const devSurveyPack2: FeudPack = {
       answers: [
         { text: 'Stack Overflow', points: 35 },
         { text: 'The docs', points: 24 },
-        { text: 'GitHub', points: 18 },
+        { text: 'GitLab', points: 18 },
         { text: 'An AI chat', points: 13 },
         { text: 'The ticket you are avoiding', points: 10 },
       ],

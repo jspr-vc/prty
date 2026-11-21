@@ -20,7 +20,7 @@ export const devTriviaPack: JeopardyPack = {
               dailyDouble: false,
             },
             {
-              clue: 'Git named its default branch this until 2020.',
+              clue: 'GitLab named the default branch of new projects this until version 14.0 in 2021.',
               answer: 'What is master?',
               dailyDouble: true,
             },
@@ -258,7 +258,7 @@ export const devTriviaPack: JeopardyPack = {
           name: 'Editors',
           clues: [
             {
-              clue: 'The keystroke that writes and quits vim.',
+              clue: 'The command that writes and quits vim.',
               answer: 'What is :wq?',
               dailyDouble: false,
             },
@@ -289,7 +289,7 @@ export const devTriviaPack: JeopardyPack = {
   ],
   final: {
     category: 'Computing History',
-    clue: 'In 1947 operators at Harvard taped this to a logbook page, coining a term programmers still use.',
-    answer: 'What is a moth (the first computer bug)?',
+    clue: 'In 1947 operators at Harvard taped this to a logbook page as the "first actual case of bug being found".',
+    answer: 'What is a moth?',
   },
 }

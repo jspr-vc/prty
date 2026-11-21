@@ -22,7 +22,7 @@ const entries = [
     definition: jeopardy,
     packs: [
       { slug: 'general-trivia', name: 'General Trivia', content: generalTriviaPack },
-      { slug: 'pub-quiz', name: 'Pub Quiz', content: pubQuizPack },
+      { slug: 'pub-quiz', name: 'Barkada Quiz', content: pubQuizPack },
       { slug: 'general-trivia-2', name: 'General Trivia II', content: generalTriviaPack2 },
       { slug: 'dev-trivia', name: 'Dev Trivia', content: devTriviaPack },
       { slug: 'dev-trivia-2', name: 'Dev Trivia II', content: devTriviaPack2 },

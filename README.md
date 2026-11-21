@@ -97,8 +97,8 @@ so real phones work here too.
 The file is created, migrated and seeded on first start. Delete it to reset
 everything, including the host PIN.
 
-Two more subcommands, `gameshows voices` and `gameshows narrate`, are covered
-under [Narration](#narration).
+Three more subcommands, `gameshows voices`, `gameshows narrate` and
+`gameshows clear-renders`, are covered under [Narration](#narration).
 
 ## The three surfaces
 
@@ -251,6 +251,11 @@ never rendered and falls back to synthesising them live, mid-show.
 Re-running is cheap: anything already rendered is skipped, and the summary says
 how many were reused. `#` in the progress line is a render, `·` is a cache hit,
 `!` is a line the engine refused.
+
+To delete every rendered clip, for all voices and packs, run
+`gameshows clear-renders` or press **Delete all renders** in the host console.
+The console refuses while a render is running. Clips compiled into the binary
+are read-only, so they stay playable.
 
 ### Piper voices built into the binary
 
