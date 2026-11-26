@@ -14,6 +14,10 @@ interface Props {
   capturing: BuzzerTarget | null
   onCapturingChange: (target: BuzzerTarget | null) => void
   onReset: () => void
+  /** Players who just pressed a buzzer, with the time of the press. */
+  lit: ReadonlyMap<string, number>
+  /** No match is running, so a press is a test rather than a buzz. */
+  testing: boolean
 }
 
 function targetKey(target: BuzzerTarget): string {
@@ -33,7 +37,14 @@ function targetKey(target: BuzzerTarget): string {
  * is across the room, one that has stopped reporting, or a set whose labels the
  * host already knows. It writes the same binding the press would have.
  */
-export function BuzzerPanel({ session, capturing, onCapturingChange, onReset }: Props) {
+export function BuzzerPanel({
+  session,
+  capturing,
+  onCapturingChange,
+  onReset,
+  lit,
+  testing,
+}: Props) {
   const trpc = useTRPC()
   const bindings = useQuery(trpc.buzzer.list.queryOptions({ sessionId: session.id }))
 
@@ -79,15 +90,18 @@ export function BuzzerPanel({ session, capturing, onCapturingChange, onReset }: 
     else if (previous) unbind.mutate({ sessionId: session.id, key: previous })
   }
 
-  const rows: { target: BuzzerTarget; label: string; sub?: string }[] = [
+  const rows: { target: BuzzerTarget; label: string; sub?: string; pressed?: number }[] = [
     ...session.teams.map((team) => ({
       target: { kind: 'team', teamId: team.id } as BuzzerTarget,
       label: team.name,
       sub: representativeOf(session, team.id),
+      // A team pad buzzes as its representative, so that is whose press it is.
+      pressed: lit.get(session.players.find((player) => player.teamId === team.id)?.id ?? ''),
     })),
     ...session.players.map((player) => ({
       target: { kind: 'player', playerId: player.id } as BuzzerTarget,
       label: player.displayName,
+      pressed: lit.get(player.id),
     })),
   ]
 
@@ -116,6 +130,8 @@ export function BuzzerPanel({ session, capturing, onCapturingChange, onReset }: 
           Pick someone, then press their pad, or choose the pad from the dropdown if you already
           know which is which. Pads send F13–F23; {BUZZER_RESET_KEY} re-arms the room. Phones keep
           working either way.
+          {testing &&
+            ' Until a match starts, any press is a test: the row lights up here and the name lights up on the TV.'}
         </p>
       )}
 
@@ -129,10 +145,21 @@ export function BuzzerPanel({ session, capturing, onCapturingChange, onReset }: 
               className={cn(
                 'flex items-center gap-2 rounded-md border p-2',
                 isCapturing && 'border-amber-400',
+                row.pressed !== undefined && 'border-emerald-400 bg-emerald-500/10',
               )}
             >
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm">{row.label}</span>
+                <span className="flex items-center gap-2">
+                  <span className="truncate text-sm">{row.label}</span>
+                  {row.pressed !== undefined && (
+                    <span
+                      key={row.pressed}
+                      className="gs-pop shrink-0 font-semibold text-emerald-400 text-xs uppercase"
+                    >
+                      buzzed
+                    </span>
+                  )}
+                </span>
                 {row.sub && (
                   <span className="block truncate text-muted-foreground text-xs">{row.sub}</span>
                 )}

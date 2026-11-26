@@ -61,6 +61,10 @@ Vite proxies `/api` and `/ws` to 3001; the binary serves all of it from one port
   the board backwards. A write returns the same `{ matchId, rev, state, changed }`
   it broadcast, so whoever acted applies their own result instead of waiting for
   it to come back round.
+- **With no active match, a buzzer press is a test.** `pressBuzzer` and
+  `match.testBuzz` broadcast `buzzer_test` and nothing else: no lock, no write,
+  no rev. Clients handle it like `narration_replay`, without going back to the
+  server. Once a match starts, phone tests are rejected and pads buzz for real.
 - **A reducer returns its input unchanged to reject an action.** `commit()` checks
   `changed` and skips the write, the event log and the broadcast. Never mutate state.
 - **`bun:sqlite` is a synchronous driver, so transactions are synchronous.** Use

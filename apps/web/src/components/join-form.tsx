@@ -29,8 +29,10 @@ export function JoinForm({ code }: { code: string }) {
 
   // A rename or a team change lands on `me`, which the session read does not
   // cover, so it is refetched whenever anything but a match update arrives.
-  const { applyMatch, invalidate } = useSessionSync(code, sessionQuery.data?.id, () => {
-    if (token) void meQuery.refetch()
+  const { applyMatch, invalidate } = useSessionSync(code, sessionQuery.data?.id, {
+    onRefresh: () => {
+      if (token) void meQuery.refetch()
+    },
   })
 
   const join = useMutation(

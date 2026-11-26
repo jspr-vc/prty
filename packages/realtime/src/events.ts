@@ -28,6 +28,12 @@ export type SessionEvent =
   | { type: 'match_updated'; matchId: string; rev: number; state: unknown }
   | { type: 'match_ended'; matchId: string }
   /**
+   * A buzzer pressed while no match is running, so players can check theirs
+   * before the game starts. Nothing is stored and nothing changes, so like a
+   * replay it must not send a screen back to the server.
+   */
+  | { type: 'buzzer_test'; playerId: string; via: 'pad' | 'phone' }
+  /**
    * The host asking the big screen to read the current line again. Nothing has
    * changed, so this is the one event that must not send a screen back to the
    * server: it is a command, not a notification.

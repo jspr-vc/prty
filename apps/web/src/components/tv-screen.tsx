@@ -2,11 +2,12 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import type { RouterOutputs } from '@workspace/api'
 import { useTRPC } from '@workspace/api/react'
 import { getGame, narrateMatch } from '@workspace/games'
-import type { Cue } from '@workspace/ui/lib/sound'
+import { type Cue, play } from '@workspace/ui/lib/sound'
 import { useMemo, useState } from 'react'
 import { Lobby } from '@/components/lobby'
 import { GameDisplay } from '@/games/registry'
 import { useBuzzerKeys } from '@/hooks/use-buzzer-keys'
+import { useBuzzerTests } from '@/hooks/use-buzzer-tests'
 import { useNarration } from '@/hooks/use-narration'
 import { useSessionSync } from '@/hooks/use-session-sync'
 import { useTransitionCue } from '@/hooks/use-sound-cues'
@@ -107,9 +108,15 @@ export function TvScreen({ code }: { code: string }) {
   // stored: the count is what tells the narration hook to read again, and
   // `fresh` says the clip behind it was just re-rendered.
   const [replay, setReplay] = useState({ token: 0, fresh: false })
-  const { buzz, status } = useSessionSync(code, session?.id, undefined, (fresh) =>
-    setReplay((current) => ({ token: current.token + 1, fresh })),
-  )
+  const tests = useBuzzerTests()
+  const { buzz, status } = useSessionSync(code, session?.id, {
+    onNarrationReplay: (fresh) => setReplay((current) => ({ token: current.token + 1, fresh })),
+    // A test is an event, not a state change, so the cue diff never sees it.
+    onBuzzerTest: (event) => {
+      tests.record(event.playerId)
+      play('buzz')
+    },
+  })
   useTransitionCue(cueSignature(session), resolveCue)
 
   const match = session?.activeMatch
@@ -164,7 +171,7 @@ export function TvScreen({ code }: { code: string }) {
   return match ? (
     <GameDisplay slug={match.game.slug} pack={match.pack?.content} state={match.state} ctx={ctx} />
   ) : (
-    <Lobby session={session} />
+    <Lobby session={session} lit={tests.lit} />
   )
 }
 

@@ -22,17 +22,23 @@ export interface MatchUpdate {
  * — someone joining, teams changing, a match starting or ending — moves rows
  * the push does not carry, so those still go back to the server.
  */
-export function useSessionSync(
-  code: string,
-  sessionId: string | null | undefined,
+export interface SessionSyncHandlers {
   /** Runs alongside every full read, for queries this hook does not own. */
-  onRefresh?: () => void,
+  onRefresh?: () => void
   /**
    * The host asked for the current narration line again, `fresh` when the clip
    * was just re-rendered and the browser's copy of it is stale. Only the TV
    * listens.
    */
-  onNarrationReplay?: (fresh: boolean) => void,
+  onNarrationReplay?: (fresh: boolean) => void
+  /** Someone pressed a buzzer while no match was running. */
+  onBuzzerTest?: (event: Extract<SessionEvent, { type: 'buzzer_test' }>) => void
+}
+
+export function useSessionSync(
+  code: string,
+  sessionId: string | null | undefined,
+  { onRefresh, onNarrationReplay, onBuzzerTest }: SessionSyncHandlers = {},
 ) {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
@@ -40,6 +46,8 @@ export function useSessionSync(
   refresh.current = onRefresh
   const replay = useRef(onNarrationReplay)
   replay.current = onNarrationReplay
+  const tested = useRef(onBuzzerTest)
+  tested.current = onBuzzerTest
 
   const invalidate = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: trpc.session.byCode.queryKey(code) })
@@ -80,6 +88,10 @@ export function useSessionSync(
       // already holds.
       if (event.type === 'narration_replay') {
         replay.current?.(event.fresh === true)
+        return
+      }
+      if (event.type === 'buzzer_test') {
+        tested.current?.(event)
         return
       }
       invalidate()
