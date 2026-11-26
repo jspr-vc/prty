@@ -231,7 +231,27 @@ export function resolveBuzzerPlayer(db: Database, sessionId: string, key: string
 
 export type BuzzerOutcome =
   | { status: 'applied'; update: MatchUpdate }
+  | { status: 'tested'; playerId: string }
   | { status: 'ignored'; reason: 'debounced' | 'unbound' | 'no-match' | 'rejected' }
+
+function activeMatchId(db: Database, sessionId: string): string | undefined {
+  return db
+    .select({ id: match.id })
+    .from(match)
+    .where(and(eq(match.sessionId, sessionId), eq(match.status, 'active')))
+    .get()?.id
+}
+
+/**
+ * Between matches a press is a test: the room hears it and the player's name
+ * lights up, so a dead pad or a wrong pairing shows before the first clue
+ * rather than during it. It is a broadcast and nothing else, so it needs no
+ * lock and leaves no trace.
+ */
+function broadcastTest(sessionId: string, playerId: string, via: 'pad' | 'phone'): BuzzerOutcome {
+  broadcastToSession(sessionId, { type: 'buzzer_test', playerId, via })
+  return { status: 'tested', playerId }
+}
 
 /**
  * A press on a physical pad, from wherever it was seen — the TV, the host
@@ -242,23 +262,22 @@ export type BuzzerOutcome =
  * to a buzzer, and none of them should surface as an error on a screen.
  */
 export function pressBuzzer(db: Database, sessionId: string, key: string): Promise<BuzzerOutcome> {
-  const active = db
-    .select({ id: match.id })
-    .from(match)
-    .where(and(eq(match.sessionId, sessionId), eq(match.status, 'active')))
-    .get()
-  if (!active) return Promise.resolve({ status: 'ignored', reason: 'no-match' })
+  const activeId = activeMatchId(db, sessionId)
+  const isReset = key === BUZZER_RESET_KEY
+  // Re-arming means nothing without a match, and it has no owner to light up.
+  if (!activeId && isReset) return Promise.resolve({ status: 'ignored', reason: 'no-match' })
 
   if (debounced(sessionId, key)) {
     return Promise.resolve({ status: 'ignored', reason: 'debounced' })
   }
 
-  const isReset = key === BUZZER_RESET_KEY
   const playerId = isReset ? null : resolveBuzzerPlayer(db, sessionId, key)
   if (!isReset && !playerId) return Promise.resolve({ status: 'ignored', reason: 'unbound' })
 
-  return withMatchLock(active.id, async () => {
-    const found = await loadMatch(db, active.id)
+  if (!activeId) return Promise.resolve(broadcastTest(sessionId, playerId as string, 'pad'))
+
+  return withMatchLock(activeId, async () => {
+    const found = await loadMatch(db, activeId)
     if (found.status !== 'active') return { status: 'ignored', reason: 'no-match' } as const
 
     const definition = definitionFor(found)
@@ -272,4 +291,24 @@ export function pressBuzzer(db: Database, sessionId: string, key: string): Promi
 
     return { status: 'applied', update: commit(db, found, applied, playerId) } as const
   })
+}
+
+/**
+ * The phone's half of the buzzer test. The token says who is pressing, exactly
+ * as it does for a real buzz, so nobody can light up somebody else's name.
+ */
+export function testPlayerBuzzer(db: Database, token: string): BuzzerOutcome {
+  const player = db
+    .select({ id: sessionPlayer.id, sessionId: sessionPlayer.sessionId })
+    .from(sessionPlayer)
+    .where(eq(sessionPlayer.token, token))
+    .get()
+  if (!player) throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Unknown player' })
+
+  // Once a match is running the real buzzer is the only one.
+  if (activeMatchId(db, player.sessionId)) return { status: 'ignored', reason: 'rejected' }
+  if (debounced(player.sessionId, `phone:${player.id}`)) {
+    return { status: 'ignored', reason: 'debounced' }
+  }
+  return broadcastTest(player.sessionId, player.id, 'phone')
 }

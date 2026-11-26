@@ -21,6 +21,7 @@ import {
   loadMatch,
   type MatchUpdate,
   pressBuzzer,
+  testPlayerBuzzer,
 } from '../match-service'
 import { createTRPCRouter, hostProcedure, publicProcedure } from '../trpc'
 
@@ -116,6 +117,11 @@ export const matchRouter = createTRPCRouter({
   buzzer: publicProcedure
     .input(z.object({ sessionId: z.uuid(), key: buzzerKeySchema }))
     .mutation(({ ctx, input }) => pressBuzzer(ctx.db, input.sessionId, input.key)),
+
+  /** A phone checking its buzzer before a match. Does nothing once one starts. */
+  testBuzz: publicProcedure
+    .input(z.object({ token: playerTokenSchema }))
+    .mutation(({ ctx, input }) => testPlayerBuzzer(ctx.db, input.token)),
 
   end: hostProcedure.input(z.object({ matchId: z.uuid() })).mutation(async ({ ctx, input }) => {
     const found = await loadMatch(ctx.db, input.matchId)

@@ -11,6 +11,7 @@ import { NarrationPanel } from '@/components/narration-panel'
 import { StartMatchPanel } from '@/components/start-match-panel'
 import { GameControl } from '@/games/registry'
 import { type BuzzerPad, useBuzzerKeys } from '@/hooks/use-buzzer-keys'
+import { useBuzzerTests } from '@/hooks/use-buzzer-tests'
 import { useSessionSync } from '@/hooks/use-session-sync'
 
 export function SessionConsole({ code }: { code: string }) {
@@ -18,7 +19,15 @@ export function SessionConsole({ code }: { code: string }) {
   const sessionQuery = useQuery(trpc.session.byCode.queryOptions(code))
   const session = sessionQuery.data
 
-  const { status: connection, applyMatch, invalidate, buzz } = useSessionSync(code, session?.id)
+  const tests = useBuzzerTests()
+  const {
+    status: connection,
+    applyMatch,
+    invalidate,
+    buzz,
+  } = useSessionSync(code, session?.id, {
+    onBuzzerTest: (event) => tests.record(event.playerId),
+  })
 
   /** Non-null while the host is pairing a pad, which changes what a press means. */
   const [capturing, setCapturing] = useState<BuzzerTarget | null>(null)
@@ -92,6 +101,8 @@ export function SessionConsole({ code }: { code: string }) {
             session={session}
             capturing={capturing}
             onCapturingChange={setCapturing}
+            lit={tests.lit}
+            testing={!match}
             onReset={() => press(BUZZER_RESET_KEY)}
           />
           <NarrationPanel session={session} />

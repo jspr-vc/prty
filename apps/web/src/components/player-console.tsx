@@ -6,6 +6,7 @@ import { clueKey, clueValue, type JeopardyPack } from '@workspace/game-jeopardy'
 import { Button } from '@workspace/ui/components/ui/button'
 import { cn } from '@workspace/ui/lib/utils'
 import { useState } from 'react'
+import { useBuzzerTests } from '@/hooks/use-buzzer-tests'
 import type { MatchUpdate } from '@/hooks/use-session-sync'
 
 type Session = NonNullable<RouterOutputs['session']['byCode']>
@@ -56,9 +57,39 @@ export function PlayerConsole({
   const [wager, setWager] = useState<number | null>(null)
 
   const act = useMutation(trpc.match.playerAction.mutationOptions({ onSuccess: onActed }))
+  const tests = useBuzzerTests()
+  const test = useMutation(
+    trpc.match.testBuzz.mutationOptions({
+      onSuccess: (outcome) => {
+        if (outcome.status === 'tested') tests.record(me.id)
+      },
+    }),
+  )
 
   if (!match) {
-    return <Waiting>Waiting for the host to start a game.</Waiting>
+    const heard = tests.lit.get(me.id)
+    return (
+      <div className="space-y-4">
+        {heard !== undefined ? (
+          <Banner key={heard} tone="gold">
+            It works. Check the big screen.
+          </Banner>
+        ) : (
+          <Banner tone="muted">Waiting for the host to start a game.</Banner>
+        )}
+        <BuzzerButton
+          disabled={false}
+          active={false}
+          onPress={() => {
+            haptic(60)
+            test.mutate({ token })
+          }}
+        />
+        <p className="text-center text-muted-foreground text-sm">
+          Test your buzzer while you wait. It counts for real once the game starts.
+        </p>
+      </div>
+    )
   }
 
   const send = (action: unknown) => {
